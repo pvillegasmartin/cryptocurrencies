@@ -1,8 +1,11 @@
+import os
+import general_settings
+
 import pandas as pd
 import talib
 
 
-def read_data(file='./get_data/BTCUSDT-hist.csv'):
+def read_data(file=os.path.join(general_settings.path,'get_data','BTCUSDT-hist.csv')):
     """Get Historical data from files
     :param file: Name of symbol pair e.g BNBBTC-hist
     :return: dataframe of OHLCV values
@@ -17,7 +20,7 @@ def read_data(file='./get_data/BTCUSDT-hist.csv'):
     return df
 
 def create_indicators(df):
-    """Calculate financial indicators. Ref: https://mrjbq7.github.io/ta-lib/doc_index.html
+    """Calculate financial indicators. Library documents: https://mrjbq7.github.io/ta-lib/doc_index.html
         :param df: Dataframe with OHLCV data
         :return: dataframe of OHLCV + financial indicators
     """
@@ -36,6 +39,10 @@ def create_indicators(df):
     df.dropna(inplace=True)
     df.reset_index(drop=True, inplace=True)
 
+    return df
+
+# TODO implement scalers
+def scaler(df):
     return df
 
 if __name__ == '__main__':
