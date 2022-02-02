@@ -3,6 +3,7 @@ from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import json
+from api.get_data import *
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 api = Api(app)
@@ -10,17 +11,16 @@ app.config.from_object("api.config.Config")
 db = SQLAlchemy(app)
 
 
-
 class Crypto(db.Model):
     __tabletime__ = 'Crypto'
     id = db.Column(db.String(64), primary_key=True, unique=True)
     coin = db.Column(db.String(64), unique=False, nullable=False)
-    time = db.Column(db.Integer(), unique=False, nullable=False)
-    high = db.Column(db.Integer(), unique=False, nullable=False)
-    low = db.Column(db.Integer(), unique=False, nullable=False)
-    open = db.Column(db.Integer(), unique=False, nullable=False)
-    close = db.Column(db.Integer(), unique=False, nullable=False)
-    volume = db.Column(db.Integer(), unique=False, nullable=False)
+    time = db.Column(db.BigInteger(), unique=False, nullable=False)
+    high = db.Column(db.Float(), unique=False, nullable=False)
+    low = db.Column(db.Float(), unique=False, nullable=False)
+    open = db.Column(db.Float(), unique=False, nullable=False)
+    close = db.Column(db.Float(), unique=False, nullable=False)
+    volume = db.Column(db.Float(), unique=False, nullable=False)
 
     def __init__(self, coin, time, high, low, open, close, volume):
         self.id = coin + str(time)
@@ -69,14 +69,13 @@ class Crypto_api(Resource):
         args_parser = reqparse.RequestParser()
         args_parser.add_argument('coin', type=str)
         args_parser.add_argument('time', type=int)
-        args_parser.add_argument('high', type=int)
-        args_parser.add_argument('low', type=int)
-        args_parser.add_argument('open', type=int)
-        args_parser.add_argument('close', type=int)
-        args_parser.add_argument('volume', type=int)
+        args_parser.add_argument('high', type=float)
+        args_parser.add_argument('low', type=float)
+        args_parser.add_argument('open', type=float)
+        args_parser.add_argument('close', type=float)
+        args_parser.add_argument('volume', type=float)
 
         args = args_parser.parse_args()
-        #id = args['coin']+str(args['time'])
         coin = args['coin']
         time = args['time']
         high = args['high']
@@ -102,9 +101,15 @@ def home():
 
 @app.route('/<coin>', methods=['GET', 'POST'])
 def crypto_detail(coin):
-    req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
-    all_info = json.loads(req.content)
     try:
-        return f"{coin}: {all_info['high']}"
+        req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
+        all_info = json.loads(req.content)
+
+        df_new = get_historical_klines(start_str=max(all_info['time']),end_str='now UTC',interval='15m',symbol=coin)
+        for index, row in df_new.iterrows():
+            #data = {'coin':row['symbol'], 'time':row['time'], 'high':row['High'], 'low':row['Low'], 'open':row['Open'], 'close':row['Close'], 'volume':row['Volume']}
+            requests.post(f'http://localhost:5000/crypto?coin={row["symbol"]}&time={row["time"]}&high={row["High"]}&low={row["Low"]}&open={row["Open"]}&close={row["Close"]}&volume={row["Volume"]}')
+
+        return f"{coin}: {all_info['high']}, df:{df_new.columns}"
     except:
         return f'http://127.0.0.1:5000/crypto?coin={coin}'
