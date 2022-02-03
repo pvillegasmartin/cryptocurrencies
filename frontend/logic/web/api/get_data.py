@@ -78,8 +78,8 @@ def get_historical_klines(symbol, interval, start_str, end_str=None):
     # convert our date strings to milliseconds
     start_ts = int(start_str)
 
-    # Se le resta 15 minuto para que no pida la vela en construccion.
-    end_ts = date_to_milliseconds(end_str) - 60000*15 if end_str else None
+    # Se le resta 60 minuto para que no pida la vela en construccion.
+    end_ts = date_to_milliseconds(end_str) - 60000*60 if end_str else None
 
     # it can be difficult to know when a symbol was listed on Binance so allow start time to be before list date
     symbol_existed = False
@@ -143,4 +143,5 @@ def get_historical_klines(symbol, interval, start_str, end_str=None):
         file.write('\n'.join(output_data)+'\n')
 
     df = pd.read_csv(f'{symbol}-hist.csv', header=0, sep=',')
+    df.time = df.time.apply(lambda x: datetime.fromtimestamp(x/1000.0))
     return df

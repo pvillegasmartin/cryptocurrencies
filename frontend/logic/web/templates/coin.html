@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+        {% if data['time'] != [] %}
+            <h1>{{data['coin'][0]}}</h1>
+            {% if data['close'][-1] < data['close'][-2] %}
+                <h3 style="display:inline;">{{data['close'][-1]}}</h3>
+                <h4 style="color:red; display:inline;" id="perc">%</h4>
+            {% else %}
+                <h3 style="display:inline;">{{data['close'][-1]}}</h3>
+                <h4 style="color:green; display:inline;" id="perc">%</h4>
+            {% endif %}
+        {% endif %}
+        <form action="" method="post">
+            <input type="submit" class="btn btn-outline-secondary" id="actualizar" name="actualizar" value="Refresh" style="margin-top:10px;" />
+        </form>
+        {% if data['time'] != [] %}
+            <div class="row">
+                <div class="col-lg-6 col-12">
+                        <canvas id="line-chart"></canvas>
+                </div>
+                <div class="col-lg-6 col-12">
+                        <canvas id="bar-chart"></canvas>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+{% endblock %}
+
+{% block particularscripts %}
+<script>
+    document.getElementById("perc").innerHTML = (({{data["close"][-1]}}-{{data["close"][-2]}})/{{data["close"][-2]}}*100).toFixed(2) + "%";
+    new Chart(document.getElementById("line-chart"), {
+      type: 'line',
+      data: {
+        labels: [{% for item in data["time"] %}
+                    "{{item}}",
+                   {% endfor %}],
+        datasets: [{
+            data: [{% for item in data["close"] %}
+                    "{{item}}",
+                   {% endfor %}],
+            label: '{{ data["coin"][0] }}',
+            borderColor: "#3e95cd",
+            pointRadius: 0,
+            fill: false
+          }
+        ]
+      },
+      options: {
+        legend: { display: false },
+        title: {
+          display: true,
+          text: 'PRICE'
+        }
+      }
+    });
+
+    // Bar chart
+    new Chart(document.getElementById("bar-chart"), {
+        type: 'bar',
+        data: {
+          labels: [{% for item in data["time"] %}
+                    "{{item}}",
+                   {% endfor %}],
+          datasets: [
+            {
+              label: "Volume",
+              backgroundColor: "#3e95cd",
+              data: [{% for item in data["volume"] %}
+                    "{{item}}",
+                   {% endfor %}]
+            }
+          ]
+        },
+        options: {
+          legend: { display: false },
+          title: {
+            display: true,
+            text: 'VOLUME'
+          }
+        }
+    });
+</script>
+{% endblock %}
