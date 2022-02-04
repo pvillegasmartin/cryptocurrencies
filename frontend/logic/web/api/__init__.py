@@ -108,6 +108,8 @@ def crypto_detail(coin):
     if request.method == 'POST':
         try:
             last_time = max(all_info['time'])
+            last_time = date_to_milliseconds(last_time)
+
         except:
             last_time = 1640991600000
 
