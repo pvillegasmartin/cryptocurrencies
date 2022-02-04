@@ -1,9 +1,10 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect
 from flask_restful import Api, Resource, reqparse
 from flask_sqlalchemy import SQLAlchemy
 import requests
 import json
 from api.get_data import *
+import time
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 api = Api(app)
@@ -90,7 +91,7 @@ class Crypto_api(Resource):
             return {'coin':coin, 'time':time}
 
         except:
-            return {'ERROR': "Couldn't insert coin"}
+            return {'time': []}
 
 api.add_resource(Crypto_api, '/crypto')
 
@@ -101,10 +102,10 @@ def home():
 
 @app.route('/<coin>', methods=['GET', 'POST'])
 def crypto_detail(coin):
-    if request.method == 'POST':
+    req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
+    all_info = json.loads(req.content)
 
-        req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
-        all_info = json.loads(req.content)
+    if request.method == 'POST':
         try:
             last_time = max(all_info['time'])
         except:
@@ -116,14 +117,10 @@ def crypto_detail(coin):
             for index, row in df_new.iterrows():
                 requests.post(f'http://localhost:5000/crypto?coin={row["symbol"]}&time={row["time"]}&high={row["High"]}&low={row["Low"]}&open={row["Open"]}&close={row["Close"]}&volume={row["Volume"]}')
 
-            req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
-            all_info = json.loads(req.content)
+            return redirect(f'http://localhost:5000/{coin}')
 
-            return render_template('coin.html', data=all_info)
         except:
             return render_template('coin.html', data=all_info)
 
     else:
-        req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
-        all_info = json.loads(req.content)
         return render_template('coin.html', data=all_info)
