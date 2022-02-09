@@ -1,4 +1,4 @@
-interval = '15m'
+interval = '4h'
 first_date = '01 Apr 2017'
 last_date = 'now UTC'
 candles_request = 1000

@@ -30,7 +30,7 @@ def create_indicators(df):
         :param df: Dataframe with OHLCV data
         :return: dataframe of OHLCV + financial indicators
     """
-    # TODO which momentum indicators?
+    # TODO which volatility indicators?
     # ----- Volatility Indicator -----
     # NATR - Normalized Average True Range
     natr = talib.NATR(df.High, df.Low, df.Close, timeperiod=14)
@@ -55,8 +55,6 @@ def create_indicators(df):
     df.dropna(inplace=True)
     df.reset_index(drop=True, inplace=True)
 
-
-
     return df
 
 def prepare(df):
@@ -69,7 +67,7 @@ def prepare(df):
     df_train, df_test = np.split(df, [int(.75 * len(df))])
 
     # Scale numeric data
-    scaler = StandardScaler().fit(df_train)
-    df_train_scaled = scaler.transform(df_train)
+    scaler = StandardScaler()
+    df_train_scaled = scaler.fit_transform(df_train)
 
     return df_train_scaled, df_test, scaler
