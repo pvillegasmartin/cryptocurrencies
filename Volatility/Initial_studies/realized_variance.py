@@ -35,7 +35,7 @@ def read_data(file):
 
     return df
 
-def create_indicators(df):
+def create_indicators():
     """Calculate financial indicators. Library documents: https://mrjbq7.github.io/ta-lib/doc_index.html
         :param df: Dataframe with OHLCV data
         :return: dataframe of OHLCV + financial indicators
@@ -43,22 +43,34 @@ def create_indicators(df):
     # ----- Volatility Indicator -----
     # ----- Realized variance -----
     df_1m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1m.csv')
-    df_1m['R2'] = (np.log(df_1m['High']) - np.log(df_1m['Low']))**2
-    # TODO periods to define rollings
-    df_1m['RV_4h'] = df_1m['R2'].rolling(min_periods=1, window=4*60).sum()
-    df_1m = df_1m.loc[:,['time','RV_4h']]
-    df = df.merge(df_1m, left_on='time', right_on='time')
+
+    # R2 10 mins window
+    df_1m['10m'] = df_1m['Open'].shift(10)
+    df_1m['R2_10m'] = (np.log(df_1m['Close']) - np.log(df_1m['10m']))**2
+    df_1m['R2_10'] = df_1m['R2_10m'].rolling(min_periods=1, window=24*6).sum()
+
+    # R2 15 mins window
+    df_1m['15m'] = df_1m['Open'].shift(15)
+    df_1m['R2_15m'] = (np.log(df_1m['Close']) - np.log(df_1m['15m'])) ** 2
+    df_1m['R2_15'] = df_1m['R2_15m'].rolling(min_periods=1, window=24*4).sum()
+
+    # R2 30 mins window
+    df_1m['30m'] = df_1m['Open'].shift(30)
+    df_1m['R2_30m'] = (np.log(df_1m['Close']) - np.log(df_1m['30m'])) ** 2
+    df_1m['R2_30'] = df_1m['R2_30m'].rolling(min_periods=1, window=24 * 2).sum()
+
+    # R2
+    df_1m['RV_1d'] = (df_1m['R2_10']+df_1m['R2_15']+df_1m['R2_30'])/3
+
+    df = df_1m.loc[:,['time','RV_1d']]
     del df_1m
-    # Normalize change of volume with average price
-    # df['avg_price'] = talib.AVGPRICE(df.Open, df.High, df.Low, df.Close)
-    # df['total_change_norm'] = df['total_change'] / df['avg_price']
 
     # HAR
-    df['RV_7periods'] = df['RV_4h'].rolling(min_periods=1, window=7).mean()
-    df['RV_30periods'] = df['RV_4h'].rolling(min_periods=1, window=30).mean()
+    df['RV_7periods'] = df['RV_1d'].rolling(min_periods=1, window=7).mean()
+    df['RV_30periods'] = df['RV_1d'].rolling(min_periods=1, window=30).mean()
 
     # Output
-    df['output'] = df['RV_4h'].shift(-1)
+    df['output'] = df['RV_1d'].shift(-24*60)
 
     # Delete first rows where we can't have some indicators values
     df.dropna(inplace=True)
@@ -76,8 +88,8 @@ def ML_prepare(df):
     df_train, df_test = np.split(df, [int(.75 * len(df))])
     df_test.reset_index(drop=True, inplace=True)
 
-    x_train, y_train = df_train.loc[:,['RV_4h', 'RV_7periods', 'RV_30periods']], df_train['output']
-    x_test, y_test = df_test.loc[:, ['RV_4h', 'RV_7periods', 'RV_30periods']], df_test['output']
+    x_train, y_train = df_train.loc[:,['RV_1d', 'RV_7periods', 'RV_30periods']], df_train['output']
+    x_test, y_test = df_test.loc[:, ['RV_1d', 'RV_7periods', 'RV_30periods']], df_test['output']
 
     # Scale numeric data
     scaler = StandardScaler()
@@ -131,8 +143,8 @@ def ML_train(x_train, y_train, x_test, y_test):
     return tree_regressors
 
 def DL_split_data(df, lookback):
-    #df = df.loc[:,['RV_4h', 'RV_7periods', 'RV_30periods', 'output']]
-    df = df.loc[:, ['RV_4h', 'output']]
+
+    df = df.loc[:, ['RV_1d', 'output']]
     data_raw = df.to_numpy()  # convert to numpy array
     data = []
 
@@ -140,9 +152,12 @@ def DL_split_data(df, lookback):
     for index in range(len(data_raw) - lookback):
         data.append(data_raw[index: index + lookback])
 
-    data = np.array(data);
-    test_set_size = int(np.round(0.2 * data.shape[0]));
-    train_set_size = data.shape[0] - (test_set_size);
+    data = np.array(data)
+    # Too much data if we do all the possible sequences
+    data = data[int(len(data)*3/4):]
+
+    test_set_size = int(np.round(0.2 * data.shape[0]))
+    train_set_size = data.shape[0] - (test_set_size)
 
     x_train = data[:train_set_size, :, :-1]
     y_train = data[:train_set_size, :, -1]
@@ -275,10 +290,9 @@ def DL_train(df):
     return model, x_test, y_test
 
 if __name__=='__main__':
-    df_4h = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-4h.csv')
-    df_4h = create_indicators(df_4h)
-    #x_train, y_train, x_test, y_test, scaler = ML_prepare(df_4h)
-    #models = ML_train(x_train, y_train, x_test, y_test)
-    LSTM = DL_train(df_4h)
+    df_1d = create_indicators()
+    x_train, y_train, x_test, y_test, scaler = ML_prepare(df_1d)
+    models = ML_train(x_train, y_train, x_test, y_test)
+    #LSTM = DL_train(df_1d)
 
 
