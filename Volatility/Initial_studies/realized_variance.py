@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import datetime
 
 from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.ensemble import ExtraTreesRegressor
@@ -46,15 +47,12 @@ def create_indicators():
     df_1m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1m.csv')
     df_15m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-15m.csv')
 
-    print('-------------A---------------')
-
     # R2 10 mins window
     df_1m['10m'] = df_1m['Close'].shift(10)
     df_1m['R2_10m'] = (np.log(df_1m['Close']) - np.log(df_1m['10m']))**2
     weights = np.array(([0] * 9 + [1]) * 6 * 24)
     df_1m['R2_10'] = df_1m['R2_10m'].rolling(10 * 6 * 24).apply(lambda x: np.sum(weights * x))
 
-    print('-------------B---------------')
 
     # R2 15 mins window
     df_1m['15m'] = df_1m['Close'].shift(15)
@@ -62,7 +60,6 @@ def create_indicators():
     weights = np.array(([0] * 14 + [1]) * 4 * 24)
     df_1m['R2_15'] = df_1m['R2_15m'].rolling(15 * 4 * 24).apply(lambda x: np.sum(weights * x))
 
-    print('-------------C---------------')
 
     # R2 30 mins window
     df_1m['30m'] = df_1m['Close'].shift(30)
@@ -73,19 +70,15 @@ def create_indicators():
     # R2
     df_1m['RV_1d'] = (df_1m['R2_10']+df_1m['R2_15']+df_1m['R2_30'])/3
 
-    df_1m = df_1m.loc[:,['time','RV_1d']]
+    df_1m = df_1m.loc[:,['time','R2_10', 'R2_15', 'R2_30', 'RV_1d']]
     df = df_15m.merge(df_1m, how='left', on='time')
     del df_1m, df_15m
 
-    print('-------------D---------------')
-
     # HAR
     weights = np.array(([0] * (24 * 4 - 1) + [1]) * 7)
-    df['RV_7periods'] = df['RV_1d'].rolling(24*4 * 7).apply(lambda x: np.mean(weights * x))
+    df['RV_7periods'] = df['RV_1d'].rolling(24*4 * 7).apply(lambda x: np.sum(weights * x)/7)
     weights = np.array(([0] * (24 * 4 - 1) + [1]) * 30)
-    df['RV_30periods'] = df['RV_1d'].rolling(24 * 4 * 30).apply(lambda x: np.mean(weights * x))
-
-    print('-------------E---------------')
+    df['RV_30periods'] = df['RV_1d'].rolling(24 * 4 * 30).apply(lambda x: np.sum(weights * x)/30)
 
     # Output
     df['output'] = df['RV_1d'].shift(-24*4)
@@ -95,7 +88,7 @@ def create_indicators():
     df.reset_index(drop=True, inplace=True)
 
     # Save df preprocessed
-    df.to_csv('volatility.csv', index=False)
+    df.to_csv('volatility_desglose.csv', index=False)
 
     return df
 
@@ -109,6 +102,9 @@ def ML_prepare(df):
     df_train, df_test = np.split(df, [int(.75 * len(df))])
     df_test.reset_index(drop=True, inplace=True)
 
+    axis_x_train = df_train['time'].apply(lambda x: datetime.datetime.fromtimestamp(x/1000.0))
+    axis_x_test = df_test['time'].apply(lambda x: datetime.datetime.fromtimestamp(x / 1000.0))
+
     x_train, y_train = df_train.loc[:,['RV_1d', 'RV_7periods', 'RV_30periods']], df_train['output']
     x_test, y_test = df_test.loc[:, ['RV_1d', 'RV_7periods', 'RV_30periods']], df_test['output']
 
@@ -117,24 +113,24 @@ def ML_prepare(df):
     x_train_scaled = scaler.fit_transform(x_train)
     x_test_scaled = scaler.transform(x_test)
 
-    return x_train_scaled, y_train, x_test_scaled, y_test, scaler
+    return x_train_scaled, y_train, x_test_scaled, y_test, scaler, axis_x_train, axis_x_test
 
-def ML_train(x_train, y_train, x_test, y_test):
+def ML_train(x_train, y_train, x_test, y_test, axis_x_train, axis_x_test):
 
-    rang = abs(y_train.max()) + abs(y_train.min())
 
     tree_regressors = {
-        # "Decision Tree": DecisionTreeRegressor(),
-        # "Extra Trees": ExtraTreesRegressor(n_estimators=100),
-        # "Random Forest": RandomForestRegressor(n_estimators=100),
-        # "AdaBoost": AdaBoostRegressor(n_estimators=100),
-        # "Skl GBM": GradientBoostingRegressor(n_estimators=100),
-        # "XGBoost": XGBRegressor(n_estimators=100),
+        "Linear Regression": LinearRegression(),
+        "Decision Tree": DecisionTreeRegressor(),
+        "Extra Trees": ExtraTreesRegressor(n_estimators=100),
+        "Random Forest": RandomForestRegressor(n_estimators=100),
+        "AdaBoost": AdaBoostRegressor(n_estimators=100),
+        "Skl GBM": GradientBoostingRegressor(n_estimators=100),
+        "XGBoost": XGBRegressor(n_estimators=100),
         "LightGBM": LGBMRegressor(n_estimators=200),
-        #"CatBoost": CatBoostRegressor(n_estimators=100),
+        "CatBoost": CatBoostRegressor(n_estimators=100),
     }
 
-    results = pd.DataFrame({'Model': [], 'MSE': [], 'MAB': [], " % error": [], 'Time': []})
+    results = pd.DataFrame({'Model': [], 'MSE': [], 'MAB': [], 'Time': []})
 
     for model_name, model in tree_regressors.items():
         start_time = time.time()
@@ -143,20 +139,28 @@ def ML_train(x_train, y_train, x_test, y_test):
 
         pred = model.predict(x_test)
 
-        results = results.append({"Model": model_name,
+        results = pd.concat([results, pd.DataFrame({"Model": model_name,
                                   "MSE": metrics.mean_squared_error(y_test, pred),
                                   "MAB": metrics.mean_absolute_error(y_test, pred),
-                                  "Time": total_time},
-                                 ignore_index=True)
+                                  "Time": total_time}, index=[0])],
+                                 sort=False)
 
+    results.reset_index(drop=True, inplace=True)
     results_ord = results.sort_values(by=['MSE'], ascending=True, ignore_index=True)
     results_ord.index += 1
     results_ord.style.bar(subset=['MSE', 'MAE'], vmin=0, vmax=100, color='#5fba7d')
 
-    # Graph best result
+    # Graph train result
+    train_pred = tree_regressors[results['Model'][0]].predict(x_train)
+    plt.plot(axis_x_train, y_train, label="Real", linewidth=3)
+    plt.plot(axis_x_train, train_pred, label="Prediction", linewidth=1)
+    plt.legend()
+    plt.show()
+
+    # Graph best prediction
     best_pred = tree_regressors[results['Model'][0]].predict(x_test)
-    plt.plot(y_test, label="Real",linewidth=3)
-    plt.plot(best_pred, label="Prediction",linewidth=1)
+    plt.plot(axis_x_test, y_test, label="Real",linewidth=3)
+    plt.plot(axis_x_test, best_pred, label="Prediction",linewidth=1)
     plt.legend()
     plt.show()
     print(results_ord)
@@ -311,12 +315,18 @@ def DL_train(df):
 
 if __name__=='__main__':
     #df_1d = create_indicators()
-    df = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1d.csv')
-    x_train, y_train, x_test, y_test, scaler = ML_prepare(df)
-    models = ML_train(x_train, y_train, x_test, y_test)
 
+    df_1d = pd.read_csv('volatility_desglose.csv', header=0)
+    # Output
+    df_1d['output'] = df_1d['RV_1d'].shift(-4 * 24)
+    df_1d.dropna(inplace=True)
+    x_train, y_train, x_test, y_test, scaler, axis_x_train, axis_x_test = ML_prepare(df_1d)
+    models = ML_train(x_train, y_train, x_test, y_test, axis_x_train, axis_x_test)
+
+    print('done')
     """
-    df_1d = pd.read_csv('volatility.csv',header=0)
+    df = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1d.csv')
+    df_1d = pd.read_csv('volatility_desglose.csv',header=0)
     df_1d = df_1d.loc[:,['time','RV_1d', 'output']]
     df_lstm = df.merge(df_1d, on='time', how='left')
     df_lstm.dropna(inplace=True)
