@@ -3,6 +3,7 @@ import numpy as np
 import talib
 import time
 import matplotlib.pyplot as plt
+import datetime
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.tree import DecisionTreeRegressor
@@ -43,38 +44,58 @@ def create_indicators():
     # ----- Volatility Indicator -----
     # ----- Realized variance -----
     df_1m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1m.csv')
+    df_15m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-15m.csv')
+
+    print('-------------A---------------')
 
     # R2 10 mins window
-    df_1m['10m'] = df_1m['Open'].shift(10)
+    df_1m['10m'] = df_1m['Close'].shift(10)
     df_1m['R2_10m'] = (np.log(df_1m['Close']) - np.log(df_1m['10m']))**2
-    df_1m['R2_10'] = df_1m['R2_10m'].rolling(min_periods=1, window=24*6).sum()
+    weights = np.array(([0] * 9 + [1]) * 6 * 24)
+    df_1m['R2_10'] = df_1m['R2_10m'].rolling(10 * 6 * 24).apply(lambda x: np.sum(weights * x))
+
+    print('-------------B---------------')
 
     # R2 15 mins window
-    df_1m['15m'] = df_1m['Open'].shift(15)
+    df_1m['15m'] = df_1m['Close'].shift(15)
     df_1m['R2_15m'] = (np.log(df_1m['Close']) - np.log(df_1m['15m'])) ** 2
-    df_1m['R2_15'] = df_1m['R2_15m'].rolling(min_periods=1, window=24*4).sum()
+    weights = np.array(([0] * 14 + [1]) * 4 * 24)
+    df_1m['R2_15'] = df_1m['R2_15m'].rolling(15 * 4 * 24).apply(lambda x: np.sum(weights * x))
+
+    print('-------------C---------------')
 
     # R2 30 mins window
-    df_1m['30m'] = df_1m['Open'].shift(30)
+    df_1m['30m'] = df_1m['Close'].shift(30)
     df_1m['R2_30m'] = (np.log(df_1m['Close']) - np.log(df_1m['30m'])) ** 2
-    df_1m['R2_30'] = df_1m['R2_30m'].rolling(min_periods=1, window=24 * 2).sum()
+    weights = np.array(([0] * 29 + [1]) * 2 * 24)
+    df_1m['R2_30'] = df_1m['R2_30m'].rolling(30 * 2 * 24).apply(lambda x: np.sum(weights * x))
 
     # R2
     df_1m['RV_1d'] = (df_1m['R2_10']+df_1m['R2_15']+df_1m['R2_30'])/3
 
-    df = df_1m.loc[:,['time','RV_1d']]
-    del df_1m
+    df_1m = df_1m.loc[:,['time','RV_1d']]
+    df = df_15m.merge(df_1m, how='left', on='time')
+    del df_1m, df_15m
+
+    print('-------------D---------------')
 
     # HAR
-    df['RV_7periods'] = df['RV_1d'].rolling(min_periods=1, window=7).mean()
-    df['RV_30periods'] = df['RV_1d'].rolling(min_periods=1, window=30).mean()
+    weights = np.array(([0] * (24 * 4 - 1) + [1]) * 7)
+    df['RV_7periods'] = df['RV_1d'].rolling(24*4 * 7).apply(lambda x: np.mean(weights * x))
+    weights = np.array(([0] * (24 * 4 - 1) + [1]) * 30)
+    df['RV_30periods'] = df['RV_1d'].rolling(24 * 4 * 30).apply(lambda x: np.mean(weights * x))
+
+    print('-------------E---------------')
 
     # Output
-    df['output'] = df['RV_1d'].shift(-24*60)
+    df['output'] = df['RV_1d'].shift(-24*4)
 
     # Delete first rows where we can't have some indicators values
     df.dropna(inplace=True)
     df.reset_index(drop=True, inplace=True)
+
+    # Save df preprocessed
+    df.to_csv('volatility.csv', index=False)
 
     return df
 
@@ -109,8 +130,8 @@ def ML_train(x_train, y_train, x_test, y_test):
         # "AdaBoost": AdaBoostRegressor(n_estimators=100),
         # "Skl GBM": GradientBoostingRegressor(n_estimators=100),
         # "XGBoost": XGBRegressor(n_estimators=100),
-        "LightGBM": LGBMRegressor(n_estimators=100),
-        "CatBoost": CatBoostRegressor(n_estimators=100),
+        "LightGBM": LGBMRegressor(n_estimators=200),
+        #"CatBoost": CatBoostRegressor(n_estimators=100),
     }
 
     results = pd.DataFrame({'Model': [], 'MSE': [], 'MAB': [], " % error": [], 'Time': []})
@@ -153,8 +174,7 @@ def DL_split_data(df, lookback):
         data.append(data_raw[index: index + lookback])
 
     data = np.array(data)
-    # Too much data if we do all the possible sequences
-    data = data[int(len(data)*3/4):]
+
 
     test_set_size = int(np.round(0.2 * data.shape[0]))
     train_set_size = data.shape[0] - (test_set_size)
@@ -206,7 +226,7 @@ class LSTMModel(nn.Module):
 def DL_train(df):
 
     # Number of steps to unroll
-    seq_dim = 15
+    seq_dim = 30
 
     # DATA
     x_train, y_train, x_test, y_test = DL_split_data(df, seq_dim)
@@ -290,9 +310,15 @@ def DL_train(df):
     return model, x_test, y_test
 
 if __name__=='__main__':
-    df_1d = create_indicators()
-    x_train, y_train, x_test, y_test, scaler = ML_prepare(df_1d)
+    #df_1d = create_indicators()
+    df = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1d.csv')
+    x_train, y_train, x_test, y_test, scaler = ML_prepare(df)
     models = ML_train(x_train, y_train, x_test, y_test)
-    #LSTM = DL_train(df_1d)
 
-
+    """
+    df_1d = pd.read_csv('volatility.csv',header=0)
+    df_1d = df_1d.loc[:,['time','RV_1d', 'output']]
+    df_lstm = df.merge(df_1d, on='time', how='left')
+    df_lstm.dropna(inplace=True)
+    LSTM = DL_train(df_lstm)
+    """
