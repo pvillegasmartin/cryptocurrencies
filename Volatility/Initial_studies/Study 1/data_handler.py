@@ -1,0 +1,91 @@
+import pandas as pd
+import numpy as np
+import datetime
+import matplotlib.pyplot as plt
+
+import talib
+
+def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-1m.csv', period='4H'):
+    # -------- DETERMINE THE PERIOD -------- https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
+    period_mins = int(period[0])*60
+    time_14 = 14*period_mins
+    time_25 = 25*period_mins
+    time_150 = 150*period_mins
+    # -------------------------------------
+
+    df = pd.read_csv(file)
+    df['Datetime'] = df['time'].apply(lambda x: datetime.datetime.fromtimestamp(x/1000.0))
+    col_study = ['Datetime', 'Close', 'Volume', 'NumberOfTrades']
+    df = df[col_study]
+
+    # convert the column (it's a string) to datetime type
+    datetime_series = pd.to_datetime(df['Datetime'])
+    # create datetime index passing the datetime series
+    datetime_index = pd.DatetimeIndex(datetime_series.values)
+    df = df.set_index(datetime_index)
+    # we don't need the column anymore
+    df.drop('Datetime',axis=1,inplace=True)
+    df = df.sort_index()
+
+    # Realized volatility
+    df['RV'] = (np.log(df['Close']) - np.log(df['Close'].shift(period_mins)))**2
+
+    # Volume aggregation
+    df['Volume_sum'] = df['Volume'].rolling(period).sum()
+
+    # Number trades
+    df['NTrades_sum'] = df['NumberOfTrades'].rolling(period).sum()
+
+    # EMA - Exponential Moving Average
+    df['EMA14'] = talib.EMA(df.Close, timeperiod=time_14)
+    df['EMA25'] = talib.EMA(df.Close, timeperiod=time_25)
+    df['EMA150'] = talib.EMA(df.Close, timeperiod=time_150)
+
+    df['Dist_EMA14'] = (df.Close - df['EMA14'])/df.Close*100
+    df['Dist_EMA25'] = (df.Close - df['EMA25'])/df.Close*100
+    df['Dist_EMA150'] = (df.Close - df['EMA150'])/df.Close*100
+
+    # Delete first rows where we can't have some indicators values
+    df.dropna(inplace=True)
+
+    #Order final
+    col_study = ['RV', 'Close', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
+    df = df[col_study]
+
+    # Split train / test
+    df_train = df[df.index.year < 2021]
+    df_test = df[df.index.year >= 2021]
+
+    return df_train, df_test
+
+
+def next_stock_batch(batch_size, df_base, period_mins, n_steps=7):
+    t_min = 0
+    t_max = df_base.shape[0]
+  
+    # The inputs will be formed by X sequences
+    x = np.zeros((batch_size,n_steps,len(df_base.columns)))
+    
+    # We want to predict the returns of the next
+    y = np.zeros((batch_size,n_steps,1))
+
+    # We chose batch_size random points from time series x-axis
+    starting_points = np.random.randint(t_min, t_max-n_steps*period_mins-1 ,size=batch_size)
+
+    # We create the batches for x using all time series between t and t+n_steps with the corresponding jumps depending on period
+    # We create the batches for y using only one time series between t+1 and t+n_steps+1 with the corresponding jumps depending on period
+    
+    for k in np.arange(batch_size):
+        lmat = []
+        for j in np.arange(n_steps+1):
+            lmat.append(df_base.iloc[starting_points[k]+j*period_mins,:].values)
+            mat = np.array(lmat)
+        # The x values include all columns (mat[:n_steps,:])
+        # and TS values in mat between 0 and n_steps
+        x[k,:,:] = mat[:n_steps,:]
+        
+        # The y values include only column 0 (mat[1:n_steps+1,0])
+        # and TS values in mat between 1 and n_steps+1
+        y[k,:,0] = mat[1:n_steps+1,0]
+
+    return x,y
