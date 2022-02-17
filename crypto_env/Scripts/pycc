@@ -1,0 +1,3 @@
+#!C:\Users\Pablo\Desktop\STRIVE\cryptocurrencies\crypto_env\Scripts\python.exe
+from numba.pycc import main
+main()
