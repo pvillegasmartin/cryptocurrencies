@@ -1,133 +1,120 @@
+import pandas as pd
+import numpy as np
 import data_handler as dh
-from lstms import Model
+from lstms import LSTMModel
 from torch.optim import Adam, SGD
-from torch.autograd  import Variable
-from torch import nn
+from torch.autograd import Variable
 import torch
 import matplotlib.pyplot as plt
 
+df_train, df_test, scaler, train, test = dh.create_data()
+period = dh.period
+period_mins = int(period[0]) * 60
 
-df_train, df_test = dh.create_data()
-
-
-n_steps = 40 
-n_inputs = len(df_train.columns)
-n_neurons = 1
-hidden_dim = n_steps
-n_outputs = 1
-learning_rate = 0.01
+# MODEL
+n_iters = 150
+# Number of features
+input_dim = df_train.shape[-1]
+hidden_dim = 100
+layer_dim = 2
 batch_size = 64
+n_steps = 7
+# Number of outputs
+output_dim = 1
 
-LSTM = Model(n_inputs, n_neurons, hidden_dim)
+model = LSTMModel(input_dim, hidden_dim, layer_dim, output_dim)
 
-LSTM.cuda()
-
-optim = Adam(LSTM.parameters(), lr= learning_rate)
-
-criterion = nn.L1Loss()
+optimizer = Adam(model.parameters(), lr=0.01)
+criterion = torch.nn.MSELoss(reduction='mean')
 
 
 def train(n_iterations, df_train, df_test):
-
     best_val = 1000
     train_loss = []
     for iter in range(n_iterations):
 
-        x_batch, y_batch = dh.next_stock_batch(batch_size, hidden_dim, df_train, df_test)
+        x_batch, y_batch = dh.next_stock_batch(batch_size, df_train, period_mins, n_steps)
         x_batch, y_batch = torch.from_numpy(x_batch), torch.from_numpy(y_batch).squeeze(-1)
         x_batch, y_batch = Variable(x_batch).float(), Variable(y_batch).float()
 
-        x_batch.cuda()
-        y_batch.cuda() 
-
-        optim.zero_grad()
-        outputs = LSTM(x_batch)
-
-        loss = criterion(y_batch.flatten().cuda(), outputs.cuda() )
+        optimizer.zero_grad()
+        outputs = model(x_batch)
+        loss = criterion(y_batch[:, -1].flatten(), outputs.flatten())
         loss.backward()
-        optim.step()
+        optimizer.step()
         train_loss.append(loss.item())
 
         if iter % 50 == 0:
 
-            x_batch, y_batch = dh.next_stock_batch(batch_size, n_steps, df_test)
+            x_batch, y_batch = dh.next_stock_batch(batch_size, df_test, period_mins, n_steps)
             x_batch, y_batch = torch.from_numpy(x_batch), torch.from_numpy(y_batch).squeeze(-1)
             x_batch, y_batch = Variable(x_batch).float(), Variable(y_batch).float()
             with torch.no_grad():
-                outputs = LSTM(x_batch)
-                test_loss = criterion(y_batch.flatten().cuda(), outputs.cuda() )
-
+                outputs = model(x_batch)
+                test_loss = criterion(y_batch[:, -1].flatten(), outputs.flatten())
             if best_val > test_loss:
                 best_val = test_loss
-                torch.save(LSTM, "Best_val_model.pth")
-            print(iter, "\t Train Loss:", loss.item(), "\t Test Loss:", test_loss.item() )
+                torch.save(model, f"Model{period}_ldim{layer_dim}_nsteps{n_steps}.pth")
+            print(iter, "\t Train Loss:", loss.item(), "\t Test Loss:", test_loss.item())
 
-    #plt.plot(train_loss, label= "Train Loss")
-    #plt.xlabel(" Iteration ")
-    #plt.ylabel("Loss value")
-    #plt.legend(loc="upper left")
-    #plt.show()
-    #plt.clf()
-
-train(501, df_train, df_test)
-LSTM = torch.load("Best_val_model.pth")
+    plt.plot(train_loss, label="Train Loss")
+    plt.xlabel(" Iteration ")
+    plt.ylabel("Loss value")
+    plt.legend(loc="upper left")
+    plt.show()
+    # plt.clf()
 
 
-x_batch, y_batch = dh.next_stock_batch(batch_size, n_steps, df_train)
-x_batch, y_batch = torch.from_numpy(x_batch), torch.from_numpy(y_batch).squeeze(-1)
-x_batch, y_batch = Variable(x_batch).float(), Variable(y_batch).float()
+#train(45000, df_train, df_test)
+def test():
+    LSTM = torch.load(f"Model{period}_ldim{layer_dim}_nsteps{n_steps}.pth")
 
+    x_batch, y_batch = dh.next_stock_batch(batch_size, df_train, period_mins, n_steps)
+    x_batch, y_batch = torch.from_numpy(x_batch), torch.from_numpy(y_batch).squeeze(-1)
+    x_batch, y_batch = Variable(x_batch).float(), Variable(y_batch).float()
 
-if torch.cuda.is_available():
-        x_batch.cuda()
-        y_batch.cuda() 
+    with torch.no_grad():
+        LSTM.eval()
+        outputs = LSTM(x_batch)
+        loss = criterion(y_batch[:, -1].flatten(), outputs.flatten())
+        print(loss)
 
+    y = y_batch.numpy().reshape((batch_size, input_dim))[:, -1]
+    o = outputs.numpy().reshape((batch_size, output_dim)).flatten()
 
-with torch.no_grad():
-    LSTM.eval()
-    outputs = LSTM(x_batch)
-    loss = criterion(y_batch.flatten().cuda(), outputs.cuda() )
-    print(loss)
+    # plt.plot(y, label="Ground truth")
+    # plt.plot(o, label="Prediction")
+    # plt.xlabel(" Time ")
+    # plt.ylabel("RV return")
+    # plt.legend(loc="upper left")
+    # # plt.savefig('seq1.png')
+    # plt.show()
+    # # plt.clf()
 
-y = y_batch.cpu().numpy().reshape((batch_size,hidden_dim))[0,:]
-o = outputs.cpu().numpy().reshape((batch_size,hidden_dim))[0,:]
+    x_batch, y_batch = dh.next_stock_batch(batch_size, df_test, period_mins, n_steps)
+    x_batch, y_batch = torch.from_numpy(x_batch), torch.from_numpy(y_batch).squeeze(-1)
+    x_batch, y_batch = Variable(x_batch).float(), Variable(y_batch).float()
 
-#plt.plot(y, label= "Ground truth")
-#plt.plot(o, label = "Prediction")
-#plt.xlabel(" Time ")
-#plt.ylabel("Stock return")
-#plt.legend(loc="upper left")
-#plt.savefig('seq1.png')
-#plt.show()
-#plt.clf()
+    with torch.no_grad():
+        LSTM.eval()
+        outputs = LSTM(x_batch)
+        loss = criterion(y_batch[:, -1].flatten(), outputs.flatten())
+        print(loss)
 
-x_batch, y_batch = dh.next_stock_batch(batch_size, n_steps, df_test)
-x_batch, y_batch = torch.from_numpy(x_batch), torch.from_numpy(y_batch).squeeze(-1)
-x_batch, y_batch = Variable(x_batch).float(), Variable(y_batch).float()
+    y = y_batch.numpy().reshape((batch_size, input_dim))[:, -1]
+    o = outputs.numpy().reshape((batch_size, output_dim)).flatten()
 
+    # Trick to unscale the data
+    y_copies = np.repeat(y, input_dim, axis=-1).reshape(batch_size, -1)
+    o_copies = np.repeat(o, input_dim, axis=-1).reshape(batch_size, -1)
+    y = scaler.inverse_transform(y_copies)[:, 0]
+    o = scaler.inverse_transform(o_copies)[:, 0]
 
-if torch.cuda.is_available():
-        x_batch.cuda()
-        y_batch.cuda() 
-
-
-with torch.no_grad():
-    LSTM.eval()
-    outputs = LSTM(x_batch)
-    loss = criterion(y_batch.flatten().cuda(), outputs.cuda() )
-    print(loss)
-
-y = y_batch.cpu().numpy().reshape((batch_size,hidden_dim))[0,:]
-o = outputs.cpu().numpy().reshape((batch_size,hidden_dim))[0,:]
-
-#print(o)
-#print(y)
-print(outputs.shape)
-plt.plot(y, label= "Ground truth")
-plt.plot(o, label = "Prediction")
-plt.xlabel(" Time ")
-plt.ylabel("Stock return")
-plt.legend(loc="upper left")
-plt.savefig('seq2.png')
-#plt.show()
-plt.clf()
+    # plt.plot(y, label="Ground truth")
+    # plt.plot(o, label="Prediction")
+    # plt.xlabel(" Time ")
+    # plt.ylabel("RV return")
+    # plt.legend(loc="upper left")
+    # # plt.savefig(f'Seq{period}_ldim{layer_dim}_nsteps{n_steps}.png')
+    # plt.show()
+    # # plt.clf()

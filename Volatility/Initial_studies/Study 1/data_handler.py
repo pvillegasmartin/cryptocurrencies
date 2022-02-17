@@ -2,8 +2,11 @@ import pandas as pd
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import StandardScaler
 
 import talib
+
+period = '4H'
 
 def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-1m.csv', period='4H'):
     # -------- DETERMINE THE PERIOD -------- https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
@@ -53,13 +56,18 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-1m.
     df = df[col_study]
 
     # Split train / test
-    df_train = df[df.index.year < 2021]
-    df_test = df[df.index.year >= 2021]
+    df_train = df[df.index.year < 2022]
+    df_test = df[df.index.year >= 2022]
 
-    return df_train, df_test
+    #Scale data
+    scaler = StandardScaler()
+    df_train_scaled = pd.DataFrame(scaler.fit_transform(df_train))
+    df_test_scaled = pd.DataFrame(scaler.transform(df_test))
+
+    return df_train_scaled, df_test_scaled, scaler, df_train, df_test
 
 
-def next_stock_batch(batch_size, df_base, period_mins, n_steps=7):
+def next_stock_batch(batch_size, df_base, period_mins, n_steps=7, starting_points=None):
     t_min = 0
     t_max = df_base.shape[0]
   
@@ -69,8 +77,9 @@ def next_stock_batch(batch_size, df_base, period_mins, n_steps=7):
     # We want to predict the returns of the next
     y = np.zeros((batch_size,n_steps,1))
 
-    # We chose batch_size random points from time series x-axis
-    starting_points = np.random.randint(t_min, t_max-n_steps*period_mins-1 ,size=batch_size)
+    if starting_points == None:
+        # We chose batch_size random points from time series x-axis
+        starting_points = np.random.randint(t_min, t_max-n_steps*period_mins-1 ,size=batch_size)
 
     # We create the batches for x using all time series between t and t+n_steps with the corresponding jumps depending on period
     # We create the batches for y using only one time series between t+1 and t+n_steps+1 with the corresponding jumps depending on period
