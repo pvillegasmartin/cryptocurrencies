@@ -8,7 +8,8 @@ import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
-from sklearn.tree import DecisionTreeClassifier
+from graphviz import Source
+from sklearn.tree import DecisionTreeClassifier, plot_tree, export_graphviz
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import AdaBoostClassifier
@@ -28,56 +29,22 @@ import pickle
 
 def data_enhancement(data):
     gen_data = data[data['Output'] == True]
-
-    Close_std = gen_data['Close'].std()
-    RV_std = gen_data['RV'].std()
-    Volume_sum_std = gen_data['Volume_sum'].std()
-    NTrades_sum_std = gen_data['NTrades_sum'].std()
-    Dist_EMA14_std = gen_data['Dist_EMA14'].std()
-    Dist_EMA25_std = gen_data['Dist_EMA25'].std()
-    Dist_EMA150_std = gen_data['Dist_EMA150'].std()
-
+    years = gen_data.index.year
     for i in range(len(gen_data)):
-        if np.random.randint(2) == 1:
-            gen_data['Close'].values[i] += Close_std / 10
-        else:
-            gen_data['Close'].values[i] -= Close_std / 10
-
-        if np.random.randint(2) == 1:
-            gen_data['RV'].values[i] += RV_std / 10
-        else:
-            gen_data['RV'].values[i] -= RV_std / 10
-
-        if np.random.randint(2) == 1:
-            gen_data['Volume_sum'].values[i] += Volume_sum_std / 10
-        else:
-            gen_data['Volume_sum'].values[i] -= Volume_sum_std / 10
-
-        if np.random.randint(2) == 1:
-            gen_data['NTrades_sum'].values[i] += NTrades_sum_std / 10
-        else:
-            gen_data['NTrades_sum'].values[i] -= NTrades_sum_std / 10
-
-        if np.random.randint(2) == 1:
-            gen_data['Dist_EMA14'].values[i] += Dist_EMA14_std / 10
-        else:
-            gen_data['Dist_EMA14'].values[i] -= Dist_EMA14_std / 10
-
-        if np.random.randint(2) == 1:
-            gen_data['Dist_EMA25'].values[i] += Dist_EMA25_std / 10
-        else:
-            gen_data['Dist_EMA25'].values[i] -= Dist_EMA25_std / 10
-
-        if np.random.randint(2) == 1:
-            gen_data['Dist_EMA150'].values[i] += Dist_EMA150_std / 10
-        else:
-            gen_data['Dist_EMA150'].values[i] -= Dist_EMA150_std / 10
-
+        for col in data.columns:
+            if col != 'Output':
+                globals()[f'{col}_std'] = gen_data[gen_data.index.year == years[i]][col].std()
+        for col_sub in data.columns:
+            if col_sub != 'Output':
+                if np.random.randint(2) == 1:
+                    gen_data[col_sub].values[i] += eval(f'{col_sub}_std') / 10
+                else:
+                    gen_data[col_sub].values[i] -= eval(f'{col_sub}_std') / 10
     return gen_data
 
 
 def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv', period='4H', output=10,
-                periods_out=6):
+                periods_out=6, kind='+', training=True):
     # -------- DETERMINE THE PERIOD -------- https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
     time_14 = 14
     time_25 = 25
@@ -117,13 +84,14 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     df['Dist_EMA150'] = (df.Close - df['EMA150']) / df.Close * 100
 
     # Calculate output
-
-    #POSITIVE
-    df['Output_aux'] = df['Close'].shift(-periods_out).rolling(periods_out).max()
-    df['Output'] = ((df['Output_aux'] - df['Close']) / df['Close']) > (output / 100)
-    #NEGATIVE
-    #df['Output_aux'] = df['Close'].shift(-periods_out).rolling(periods_out).min()
-    #df['Output'] = ((df['Output_aux'] - df['Close']) / df['Close']) < (-output / 100)
+    if kind == '+':
+        #POSITIVE
+        df['Output_aux'] = df['Close'].shift(-periods_out).rolling(periods_out).max()
+        df['Output'] = ((df['Output_aux'] - df['Close']) / df['Close']) > (output / 100)
+    else:
+        #NEGATIVE
+        df['Output_aux'] = df['Close'].shift(-periods_out).rolling(periods_out).min()
+        df['Output'] = ((df['Output_aux'] - df['Close']) / df['Close']) < (-output / 100)
 
     # Delete first rows where we can't have some indicators values
     df.dropna(inplace=True)
@@ -132,14 +100,13 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     col_study = ['Output', 'Close', 'RV', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
     # col_study = ['Output', 'Close']
     df = df[col_study]
-    # To not have any data on the trainning, is the final test
-    '''
-    df = df[df.index.year < 2022]
-    
-    # Data augmentation
-    gen = data_enhancement(df)
-    df = pd.concat([df, gen])
-    '''
+    # To not have any data on the training, is the final test
+    if training:
+        df = df[df.index.year < 2022]
+        # Data augmentation
+        gen = data_enhancement(df)
+        df = pd.concat([df, gen])
+
     # Split train / test
     y = df['Output']
     x = df.drop(['Output'], axis=1)
@@ -152,17 +119,16 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
 
     return x_train_scaled, y_train, x_test_scaled, y_test , x, y, scaler
 
-
 def ML_train(x_train, y_train, x_test, y_test, profit):
     tree_classifiers = {
         "Decision Tree": DecisionTreeClassifier(),
-        "Extra Trees": ExtraTreesClassifier(n_estimators=100),
-        "Random Forest": RandomForestClassifier(n_estimators=100),
-        "AdaBoost": AdaBoostClassifier(n_estimators=100),
-        "Skl GBM": GradientBoostingClassifier(n_estimators=100),
-        "Skl HistGBM": HistGradientBoostingClassifier(max_iter=100),
-        "XGBoost": XGBClassifier(n_estimators=100),
-        "LightGBM": LGBMClassifier(n_estimators=100),
+        # "Extra Trees": ExtraTreesClassifier(n_estimators=100),
+        # "Random Forest": RandomForestClassifier(n_estimators=100),
+        # "AdaBoost": AdaBoostClassifier(n_estimators=100),
+        # "Skl GBM": GradientBoostingClassifier(n_estimators=100),
+        # "Skl HistGBM": HistGradientBoostingClassifier(max_iter=100),
+        # "XGBoost": XGBClassifier(n_estimators=100),
+        # "LightGBM": LGBMClassifier(n_estimators=100),
         #"CatBoost": CatBoostClassifier(n_estimators=100),
     }
 
@@ -186,6 +152,7 @@ def ML_train(x_train, y_train, x_test, y_test, profit):
 
     best_pred = tree_classifiers[results_ord['Model'][0]].predict(x_test)
     print(confusion_matrix(y_test, best_pred))
+    #Source(export_graphviz(tree_classifiers[results_ord['Model'][0]], out_file=None, feature_names=x_train.columns))
 
     # save the best model to disk
     filename = f'{results_ord["Model"][0]}_profit{profit}.sav'
@@ -194,32 +161,39 @@ def ML_train(x_train, y_train, x_test, y_test, profit):
     return tree_classifiers
 
 if __name__ == '__main__':
+    # --- VARIABLES TO DEFINE ---
+    kind = '-'
+    training = False
     profit = 5
+    if not training:
+        filename = f'Decision Tree_profit{profit}.sav'
+        eval_year = 2021
+    # ----------------------------
+
     fee = 0.04
-    filename = f'Extra Trees_profit+{profit}.sav'
-    filename = f'LightGBM_profit+{profit}.sav'
     x_train, y_train, x_test, y_test, x_original, y_original, scaler = create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv',
-                                                   period='4H', output=profit)
-    '''
-    models = ML_train(x_train, y_train, x_test, y_test, profit)
-    '''
-    # ---- VERIFY MODEL ----
-    # load the model from disk
-    loaded_model = pickle.load(open(filename, 'rb'))
-    result = loaded_model.score(x_test, y_test)
-    x_scale = scaler.transform(x_original)
-    x_original['Output'] = y_original
-    x_original['Pred'] = loaded_model.predict(x_scale)
-    # Return in case after the periods is still opened
-    x_original['Final_close'] = (x_original['Close'].shift(-6) - x_original['Close']) / x_original['Close']
-    # Check over a period
-    x_new = x_original[x_original.index.year == 2022]
-    true_positives = x_new[(x_new['Pred']==True) & (x_new['Output']==True)]['Close'].count()
-    false_positives = x_new[(x_new['Pred'] == True) & (x_new['Output'] == False)]['Final_close']
+                                                   period='4H', output=profit, kind=kind, training=training)
+    if training:
+        models = ML_train(x_train, y_train, x_test, y_test, profit)
+    else:
+        # ---- VERIFY MODEL ----
+        # load the model from disk
+        loaded_model = pickle.load(open(filename, 'rb'))
+        result = loaded_model.score(x_test, y_test)
+        x_scale = scaler.transform(x_original)
+        x_original['Output'] = y_original
+        x_original['Pred'] = loaded_model.predict(x_scale)
+        # Return in case after the periods is still opened
+        x_original['Final_close'] = (x_original['Close'].shift(-6) - x_original['Close']) / x_original['Close']
+        # Check over a period
+        x_new = x_original[x_original.index.year == eval_year]
+        true_positives = x_new[(x_new['Pred']==True) & (x_new['Output']==True)]['Close'].count()
+        false_positives = x_new[(x_new['Pred'] == True) & (x_new['Output'] == False)]['Final_close']
+        if kind == '+':
+            #POSITIVE
+            final_profit = true_positives*profit + false_positives.sum()*100 - 2*fee*(true_positives + false_positives.count()) # 2 cause buy and sell
+        else:
+            #NEGATIVE
+            final_profit = true_positives*profit - false_positives.sum()*100 - 2*fee*(true_positives + false_positives.count()) # 2 cause buy and sell
 
-    #POSITIVE
-    final_profit = true_positives*profit + false_positives.sum()*100 - 2*fee*(true_positives + false_positives.count()) # 2 cause buy and sell
-    #NEGATIVE
-    #final_profit = true_positives*profit - false_positives.sum()*100 - 2*fee*(true_positives + false_positives.count()) # 2 cause buy and sell
-
-    print(final_profit)
+        print(final_profit)
