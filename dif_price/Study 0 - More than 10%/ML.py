@@ -23,8 +23,7 @@ from sklearn.metrics import confusion_matrix
 from sklearn import pipeline
 from sklearn import metrics
 
-import torch
-import torch.nn as nn
+import pickle
 
 
 def data_enhancement(data):
@@ -118,8 +117,13 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     df['Dist_EMA150'] = (df.Close - df['EMA150']) / df.Close * 100
 
     # Calculate output
+
+    #POSITIVE
     df['Output_aux'] = df['Close'].shift(-periods_out).rolling(periods_out).max()
-    df['Output'] = abs(df['Output_aux'] - df['Close']) / df['Close'] > output / 100
+    df['Output'] = ((df['Output_aux'] - df['Close']) / df['Close']) > (output / 100)
+    #NEGATIVE
+    #df['Output_aux'] = df['Close'].shift(-periods_out).rolling(periods_out).min()
+    #df['Output'] = ((df['Output_aux'] - df['Close']) / df['Close']) < (-output / 100)
 
     # Delete first rows where we can't have some indicators values
     df.dropna(inplace=True)
@@ -128,11 +132,14 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     col_study = ['Output', 'Close', 'RV', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
     # col_study = ['Output', 'Close']
     df = df[col_study]
-
+    # To not have any data on the trainning, is the final test
+    '''
+    df = df[df.index.year < 2022]
+    
     # Data augmentation
     gen = data_enhancement(df)
     df = pd.concat([df, gen])
-
+    '''
     # Split train / test
     y = df['Output']
     x = df.drop(['Output'], axis=1)
@@ -140,13 +147,13 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
 
     # Scale data
     scaler = StandardScaler()
-    x_train = scaler.fit_transform(x_train)
-    x_test = scaler.transform(x_test)
+    x_train_scaled = scaler.fit_transform(x_train)
+    x_test_scaled = scaler.transform(x_test)
 
-    return x_train, y_train, x_test, y_test
+    return x_train_scaled, y_train, x_test_scaled, y_test , x, y, scaler
 
 
-def ML_train(x_train, y_train, x_test, y_test):
+def ML_train(x_train, y_train, x_test, y_test, profit):
     tree_classifiers = {
         "Decision Tree": DecisionTreeClassifier(),
         "Extra Trees": ExtraTreesClassifier(n_estimators=100),
@@ -175,16 +182,44 @@ def ML_train(x_train, y_train, x_test, y_test):
                                  ignore_index=True)
 
     results.reset_index(drop=True, inplace=True)
-    results_ord = results.sort_values(by=['Accuracy'], ascending=True, ignore_index=True)
+    results_ord = results.sort_values(by=['Accuracy'], ascending=False, ignore_index=True)
 
-    best_pred = tree_classifiers[results['Model'][0]].predict(x_test)
+    best_pred = tree_classifiers[results_ord['Model'][0]].predict(x_test)
     print(confusion_matrix(y_test, best_pred))
+
+    # save the best model to disk
+    filename = f'{results_ord["Model"][0]}_profit{profit}.sav'
+    pickle.dump(tree_classifiers[results_ord['Model'][0]], open(filename, 'wb'))
 
     return tree_classifiers
 
 if __name__ == '__main__':
-    x_train, y_train, x_test, y_test = create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv',
-                                                   period='4H', output=10)
-    models = ML_train(x_train, y_train, x_test, y_test)
+    profit = 5
+    fee = 0.04
+    filename = f'Extra Trees_profit+{profit}.sav'
+    filename = f'LightGBM_profit+{profit}.sav'
+    x_train, y_train, x_test, y_test, x_original, y_original, scaler = create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv',
+                                                   period='4H', output=profit)
+    '''
+    models = ML_train(x_train, y_train, x_test, y_test, profit)
+    '''
+    # ---- VERIFY MODEL ----
+    # load the model from disk
+    loaded_model = pickle.load(open(filename, 'rb'))
+    result = loaded_model.score(x_test, y_test)
+    x_scale = scaler.transform(x_original)
+    x_original['Output'] = y_original
+    x_original['Pred'] = loaded_model.predict(x_scale)
+    # Return in case after the periods is still opened
+    x_original['Final_close'] = (x_original['Close'].shift(-6) - x_original['Close']) / x_original['Close']
+    # Check over a period
+    x_new = x_original[x_original.index.year == 2022]
+    true_positives = x_new[(x_new['Pred']==True) & (x_new['Output']==True)]['Close'].count()
+    false_positives = x_new[(x_new['Pred'] == True) & (x_new['Output'] == False)]['Final_close']
 
-    print('done')
+    #POSITIVE
+    final_profit = true_positives*profit + false_positives.sum()*100 - 2*fee*(true_positives + false_positives.count()) # 2 cause buy and sell
+    #NEGATIVE
+    #final_profit = true_positives*profit - false_positives.sum()*100 - 2*fee*(true_positives + false_positives.count()) # 2 cause buy and sell
+
+    print(final_profit)
