@@ -62,14 +62,14 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     df['Dist_EMA150'] = (df.Close - df['EMA150'])/df.Close*100
 
     #Calculate output
-    df['Output'] = df['Close'].shift(-output)
+    df['Output'] = (df['Close'].shift(-output)-df['Close'])/df['Close']
 
     # Delete first rows where we can't have some indicators values
     df.dropna(inplace=True)
 
     #Order final
-    #col_study = ['Output', 'Close', 'RV', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
-    col_study = ['Output', 'Close']
+    col_study = ['Output', 'Close', 'RV', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
+    #col_study = ['Output', 'Close']
     df = df[col_study]
 
     # Split train / test

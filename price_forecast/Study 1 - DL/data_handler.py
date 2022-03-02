@@ -8,7 +8,7 @@ import talib
 
 period = '4H'
 
-def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv', period='4H', output = 10):
+def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv', period='4H', output = 1):
     # -------- DETERMINE THE PERIOD -------- https://pandas.pydata.org/pandas-docs/stable/user_guide/timeseries.html#offset-aliases
     time_14 = 14
     time_25 = 25
@@ -54,8 +54,8 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     df.dropna(inplace=True)
 
     #Order final
-    col_study = ['Output', 'Close', 'RV', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
-    #col_study = ['Output', 'Close']
+    #col_study = ['Output', 'Close', 'RV', 'Volume_sum', 'NTrades_sum', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
+    col_study = ['Output', 'Close', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
     df = df[col_study]
 
     # Split train / test

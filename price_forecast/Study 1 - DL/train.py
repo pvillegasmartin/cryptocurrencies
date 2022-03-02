@@ -11,13 +11,12 @@ output_shift = 1
 
 df_train, df_test, scaler, train, test = dh.create_data(output=output_shift)
 period = dh.period
-period_mins = int(period[0]) * 60
 
 # MODEL
 n_iters = 150
 # Number of features
 input_dim = df_train.shape[-1]-1
-hidden_dim = 100
+hidden_dim = 150
 layer_dim = 2
 batch_size = 64
 n_steps = 15

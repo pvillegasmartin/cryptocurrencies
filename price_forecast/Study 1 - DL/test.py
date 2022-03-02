@@ -9,7 +9,7 @@ df_train, df_test, scaler, data_train, data_test = dh.create_data(output=train.o
 try:
     LSTM = torch.load(f"Model{train.period}_out{train.output_shift}_inputsdim{train.input_dim}_ldim{train.layer_dim}_nsteps{train.n_steps}.pth")
 except:
-    train.train(600, df_train, df_test)
+    train.train(1000, df_train, df_test)
     LSTM = torch.load(f"Model{train.period}_out{train.output_shift}_inputsdim{train.input_dim}_ldim{train.layer_dim}_nsteps{train.n_steps}.pth")
 max_range = df_test.shape[0] - train.n_steps - 1
 predictions = []
@@ -30,11 +30,11 @@ for i in range(max_range):
 df_pred = scaler.inverse_transform(df_test.iloc[train.n_steps+1:, :])[:, 0]
 df_ground = scaler.inverse_transform(df_test.iloc[train.n_steps+1:, :])[:, 1]
 plt.plot(df_ground, label="Ground truth")
-plt.plot(df_pred, label="To predict")
+#plt.plot(df_pred, label="To predict")
 plt.plot(predictions, label="Prediction")
 plt.xlabel(" Time ")
 plt.ylabel("Output")
 plt.legend(loc="upper left")
-#plt.show()
-plt.savefig(f'Test_2022_{train.period}_out{train.output_shift}_inputsdim{train.input_dim}_ldim{train.layer_dim}_nsteps{train.n_steps}.png')
-plt.clf()
+plt.show()
+#plt.savefig(f'Test_2022_{train.period}_out{train.output_shift}_inputsdim{train.input_dim}_ldim{train.layer_dim}_nsteps{train.n_steps}.png')
+#plt.clf()
