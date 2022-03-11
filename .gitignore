@@ -128,3 +128,5 @@ dmypy.json
 # Pyre type checker
 .pyre/
 RL/FinRL-Meta/
+strategies/Sentiment/data/augmento_btc.csv
+strategies/Sentiment/data/augmento_eth.csv
