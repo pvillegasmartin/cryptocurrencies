@@ -4,8 +4,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 
+from minisom import MiniSom
 from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
 from tslearn.clustering import TimeSeriesKMeans
+from sklearn.preprocessing import MinMaxScaler
 
 #Sentiment data
 df_sentiment = pd.read_csv(r'C:\Users\Pablo\Desktop\PMG\Strategies\Sentiment\data\augmento_btc.csv')
@@ -67,9 +70,56 @@ axs[1].plot(data.bullish)
 axs[2].plot(data.bearish)
 plt.show()
 '''
-# pca = PCA(n_components=2)
-# data_pca = pca.fit_transform(data)
-print(23)
-#
+row_train = int(len(data)*0.8)
+train, test = data.iloc[:row_train,:], data.iloc[row_train:,:]
+scaler = MinMaxScaler()
+train_scaled = scaler.fit_transform(train)
+test_scaled = scaler.transform(test)
+
+mySeries = np.transpose(train_scaled)
+
+'''
+# SOM method - Self-organizing maps are a type of neural network that is trained using unsupervised learning to produce a low-dimensional representation of the input space of the training samples, called a map
+def plot_som_series_averaged_center(som_x, som_y, win_map):
+    fig, axs = plt.subplots(som_x,som_y,figsize=(25,25))
+    fig.suptitle('Clusters')
+    for x in range(som_x):
+        for y in range(som_y):
+            cluster = (x,y)
+            if cluster in win_map.keys():
+                for series in win_map[cluster]:
+                    axs[cluster].plot(series,c="gray",alpha=0.5)
+                axs[cluster].plot(np.average(np.vstack(win_map[cluster]),axis=0),c="red")
+            cluster_number = x*som_y+y+1
+            axs[cluster].set_title(f"Cluster {cluster_number}")
+    plt.show()
+
+som_x = som_y = math.ceil(math.sqrt(math.sqrt(len(mySeries))))
+som = MiniSom(som_x, som_y,len(train_scaled[0]), sigma=0.3, learning_rate = 0.1)
+som.random_weights_init(train_scaled)
+som.train(train_scaled, 50000)
+win_map = som.win_map(train_scaled)
+plot_som_series_averaged_center(som_x, som_y, win_map)
+
+
+# K-means for time series
 # model = TimeSeriesKMeans(n_clusters=3, metric="dtw", max_iter=10)
 # model.fit(data)
+'''
+# K-means with previous dimensionality reduction
+pca = PCA(n_components=2)
+data_pca = pca.fit_transform(mySeries)
+# Plot time series in 2 dimensions
+
+plt.figure(figsize=(25,10))
+plt.scatter(data_pca[:,0],data_pca[:,1], s=300)
+plt.show()
+
+kmeans = KMeans(n_clusters=3,max_iter=10000)
+labels = kmeans.fit_predict(data_pca)
+# Plot time series in 2 dimensions with labels
+plt.figure(figsize=(25,10))
+plt.scatter(data_pca[:, 0], data_pca[:, 1], c=labels, s=300)
+plt.show()
+
+print(23)
