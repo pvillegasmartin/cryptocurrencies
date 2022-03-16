@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+from scipy.stats import pearsonr
 
 from minisom import MiniSom
 from sklearn.decomposition import PCA
@@ -77,7 +78,15 @@ train_scaled = scaler.fit_transform(train)
 test_scaled = scaler.transform(test)
 
 mySeries = np.transpose(train_scaled)
-
+# Correlation
+correlations = []
+for feature in data.columns:
+    for variable in data.columns:
+        try:
+            corr = pearsonr(data[feature],data[variable])[0]
+            correlations.append([feature,variable,corr])
+        except:
+            pass
 '''
 # SOM method - Self-organizing maps are a type of neural network that is trained using unsupervised learning to produce a low-dimensional representation of the input space of the training samples, called a map
 def plot_som_series_averaged_center(som_x, som_y, win_map):
@@ -103,23 +112,53 @@ plot_som_series_averaged_center(som_x, som_y, win_map)
 
 
 # K-means for time series
-# model = TimeSeriesKMeans(n_clusters=3, metric="dtw", max_iter=10)
-# model.fit(data)
-'''
+model = TimeSeriesKMeans(n_clusters=3, metric="dtw", max_iter=10)
+labels = model.fit_predict(mySeries)
+
+plot_count = math.ceil(math.sqrt(3))
+fig, axs = plt.subplots(plot_count, plot_count, figsize=(25, 25))
+fig.suptitle('Clusters')
+row_i = 0
+column_j = 0
+# For each label there is, plots every series with that label
+for label in set(labels):
+    cluster = []
+    for i in range(len(labels)):
+        if (labels[i] == label):
+            axs[row_i, column_j].plot(mySeries[i], c="gray", alpha=0.4)
+            cluster.append(mySeries[i])
+    if len(cluster) > 0:
+        axs[row_i, column_j].plot(np.average(np.vstack(cluster), axis=0), c="red")
+    axs[row_i, column_j].set_title("Cluster " + str(row_i * plot_count + column_j))
+    column_j += 1
+    if column_j % plot_count == 0:
+        row_i += 1
+        column_j = 0
+plt.show()
+
 # K-means with previous dimensionality reduction
 pca = PCA(n_components=2)
 data_pca = pca.fit_transform(mySeries)
 # Plot time series in 2 dimensions
-
-plt.figure(figsize=(25,10))
-plt.scatter(data_pca[:,0],data_pca[:,1], s=300)
-plt.show()
+# plt.figure(figsize=(25,10))
+# plt.scatter(data_pca[:,0],data_pca[:,1], s=300)
+# plt.show()
 
 kmeans = KMeans(n_clusters=3,max_iter=10000)
 labels = kmeans.fit_predict(data_pca)
 # Plot time series in 2 dimensions with labels
-plt.figure(figsize=(25,10))
-plt.scatter(data_pca[:, 0], data_pca[:, 1], c=labels, s=300)
-plt.show()
-
+# plt.figure(figsize=(25,10))
+# plt.scatter(data_pca[:, 0], data_pca[:, 1], c=labels, s=300)
+# plt.show()
+# Plot distribution labels
+# cluster_c = [len(labels[labels==i]) for i in range(3)]
+# cluster_n = ["cluster_"+str(i) for i in range(3)]
+# plt.figure(figsize=(15,5))
+# plt.title("Cluster Distribution for KMeans")
+# plt.bar(cluster_n,cluster_c)
+# plt.show()
+# Which labels each serie
+fancy_names_for_labels = [f"Cluster {label}" for label in labels]
+series_classified = pd.DataFrame(zip(data.columns,fancy_names_for_labels),columns=["Series","Cluster"]).sort_values(by="Cluster").set_index("Series")
+'''
 print(23)
