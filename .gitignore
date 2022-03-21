@@ -130,3 +130,4 @@ dmypy.json
 RL/FinRL-Meta/
 strategies/Sentiment/data/augmento_btc.csv
 strategies/Sentiment/data/augmento_eth.csv
+*.csv
