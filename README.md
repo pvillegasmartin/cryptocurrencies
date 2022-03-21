@@ -12,9 +12,9 @@ The goal of this project is to find trading strategies that outperform the 'Buy 
 * [Analysis](Analysis) (in progress)
 
     Folder containing the different approaches and studies carried out to understand and find a good trading strategy.
-* [Strategy bots](https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis) (empty at the moment) 
+* [Strategy bots](Strategy_bots) (empty at the moment) 
  
     Contains the proven strategies to outperform the 'Buy and Hold' strategy.
-* [Web](https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis) (in progress)
+* [Web](Web) (in progress)
 
     Contains the structure of a live web that will extract the data through API, process it and display certain indications according to the applied strategy.
