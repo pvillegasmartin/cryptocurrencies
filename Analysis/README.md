@@ -7,20 +7,31 @@ The approaches studied to date are:
 
 1. [Price forecasting](Price_forecast)
 
+    - **Kind of analysis**: Regression 
     - **Output**: Bitcoin price's change
     - **Conclusion**: Discarded visually. _'Persistence model'_ happens, just returning previous values.
    
    
       Machine learning models output:
 
-<img height="250" width="400" src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/ML/Testing_output.png?raw=True"/>
+<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/ML/Testing_output.png?raw=True"/>
 
       Deep learning models (LSTM):
 
-<img height="250" width="400" src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/Test_2022_4H_out1_inputsdim7_ldim2_nsteps7.png?raw=True"/>
+<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/Test_2022_4H_out1_inputsdim7_ldim2_nsteps7.png?raw=True"/>
 
 2. [Volatility forecasting](Volatility)
+
+   - **Kind of analysis**: Regression 
+   - **Output**: Bitcoin's realized volatility defined in different ways.
+   - **Conclusion**: Discarded visually.
+
 3. [Price difference](Dif_price)
+
+   - **Kind of analysis**: Supervised Classification 
+   - **Output**: Bitcoin's percentage price in a certain time is bigger or smaller than a fixed value.
+   - **Conclusion**: .
+
 4. [Local max/min](MAXMIN%20Locals)
 5. [Sentiment analysis](Sentiment)
  

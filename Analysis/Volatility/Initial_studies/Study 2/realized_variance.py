@@ -44,8 +44,8 @@ def create_indicators():
     """
     # ----- Volatility Indicator -----
     # ----- Realized variance -----
-    df_1m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-1m.csv')
-    df_15m = read_data('C:/Users/Pablo/Desktop/STRIVE/cryptocurrencies/00Versions/get_data/BTCUSDT-15m.csv')
+    df_1m = read_data('/00Versions/get_data/BTCUSDT-1m.csv')
+    df_15m = read_data('/00Versions/get_data/BTCUSDT-15m.csv')
 
     # R2 10 mins window
     df_1m['10m'] = df_1m['Close'].shift(10)
@@ -315,7 +315,7 @@ def DL_train(df):
 
 if __name__=='__main__':
     #df_1d = create_indicators()
-
+    """
     df_1d = pd.read_csv('volatility_desglose.csv', header=0)
     # Output
     df_1d['output'] = df_1d['RV_1d'].shift(-4 * 24)
@@ -331,4 +331,3 @@ if __name__=='__main__':
     df_lstm = df.merge(df_1d, on='time', how='left')
     df_lstm.dropna(inplace=True)
     LSTM = DL_train(df_lstm)
-    """

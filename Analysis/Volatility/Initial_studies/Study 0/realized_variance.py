@@ -315,7 +315,7 @@ def DL_train(df):
 
 if __name__=='__main__':
     #df_1d = create_indicators()
-
+    """
     df_1d = pd.read_csv('volatility_desglose.csv', header=0)
     # Output
     df_1d['output'] = df_1d['RV_1d'].shift(-4 * 24)
@@ -331,4 +331,3 @@ if __name__=='__main__':
     df_lstm = df.merge(df_1d, on='time', how='left')
     df_lstm.dropna(inplace=True)
     LSTM = DL_train(df_lstm)
-    """

@@ -132,3 +132,4 @@ strategies/Sentiment/data/augmento_btc.csv
 strategies/Sentiment/data/augmento_eth.csv
 *.csv
 /00Versions/
+/Analysis/Volatility/Initial_studies/External Study/
