@@ -125,14 +125,14 @@ def ML_train(x_train, y_train, x_test, y_test, profit, kind):
 
 if __name__ == '__main__':
     # --- VARIABLES TO DEFINE ---
-    kind = '+'
+    kind = '-'
     training = False
-    profit = 3
+    profit = 5
     periods_out = 6
     past_candles = 15
     comparison = 'Close'
     if not training:
-        filename = f'Extra Trees_profit+3.sav'
+        filename = f'Extra Trees_profit-5.sav'
     # ----------------------------
 
     fee = 0.04

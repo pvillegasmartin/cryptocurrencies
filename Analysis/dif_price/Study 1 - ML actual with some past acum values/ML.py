@@ -172,7 +172,7 @@ if __name__ == '__main__':
     # --- VARIABLES TO DEFINE ---
     kind = '-'
     training = False
-    profit = 10
+    profit = 5
     if not training:
         filename = f'Extra Trees_profit{kind}{profit}.sav'
     # ----------------------------

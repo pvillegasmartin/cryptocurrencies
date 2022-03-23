@@ -5,7 +5,7 @@ import numpy as np
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
 
-LSTM = torch.load(f"Model{train.period}_ldim{train.layer_dim}_nsteps{train.n_steps}.pth")
+LSTM = torch.load(f"Model_ldim{train.layer_dim}_nsteps{train.n_steps}.pth")
 df_train, df_test, scaler, data_train, data_test = dh.create_data()
 max_range = df_test.shape[0]-train.n_steps-1
 predictions = []
@@ -21,6 +21,7 @@ for i in range(max_range):
     o_copies = np.repeat(o, train.input_dim, axis=-1).reshape(1, -1)
     o = scaler.inverse_transform(o_copies)[:, 0]
     predictions.append(o.item())
+    print(o)
 
 
 df_plot = scaler.inverse_transform(df_test.iloc[train.n_steps:,:])[:, 0]

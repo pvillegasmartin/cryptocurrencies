@@ -29,8 +29,18 @@ The approaches studied to date are:
 3. [Price difference](Dif_price)
 
    - **Kind of analysis**: Supervised Classification 
-   - **Output**: Bitcoin's percentage price in a certain time is bigger or smaller than a fixed value.
-   - **Conclusion**: .
+   - **Output**: Bitcoin's percentage price change in a lag of time is bigger or smaller than a fixed value.
+   - **Conclusion**: It seems like a good form of study, it should be explored in a greater variety of inputs. One set of input data is still under study pending the availability of more current's year data (test year).
+
+
+      Extra Trees (Output -5%):
+
+<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/ML/Testing_output.png?raw=True"/>
+
+      Extra Trees (Output -10%):
+
+<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/Test_2022_4H_out1_inputsdim7_ldim2_nsteps7.png?raw=True"/>
+
 
 4. [Local max/min](MAXMIN%20Locals)
 5. [Sentiment analysis](Sentiment)

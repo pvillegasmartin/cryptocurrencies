@@ -172,9 +172,12 @@ if __name__ == '__main__':
     # --- VARIABLES TO DEFINE ---
     kind = '-'
     training = False
-    profit = 10
+    profit = 5
     if not training:
-        filename = f'Extra Trees_profit{kind}{profit}.sav'
+        if profit == 5:
+            filename = f'Extra Trees_profit{kind}{profit}.sav'
+        else:
+            filename = f'Random Forest_profit{kind}{profit}.sav'
     # ----------------------------
 
     fee = 0.04

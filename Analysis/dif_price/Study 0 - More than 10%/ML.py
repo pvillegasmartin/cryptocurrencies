@@ -167,7 +167,7 @@ if __name__ == '__main__':
     profit = 5
     if not training:
         filename = f'Decision Tree_profit{profit}.sav'
-        eval_year = 2021
+        eval_year = 2022
     # ----------------------------
 
     fee = 0.04

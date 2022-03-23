@@ -19,12 +19,14 @@ n_steps = 15
 # Number of outputs
 output_dim = 1
 
-
-
+clip_value=5
 model = LSTMModel(input_dim, hidden_dim, layer_dim, output_dim)
 
-optimizer = Adam(model.parameters(), lr=0.01)
-criterion = torch.nn.BCELoss()
+optimizer = Adam(model.parameters(), lr=0.001)
+#optimizer = SGD(model.parameters(), lr=0.005, momentum=0.9)
+criterion = torch.nn.BCEWithLogitsLoss()
+#criterion = torch.nn.NLLLoss()
+#soft = torch.nn.LogSoftmax()
 
 
 def train(n_epochs, df_train, df_test):
@@ -40,6 +42,7 @@ def train(n_epochs, df_train, df_test):
             outputs = model(x_batch)
             loss = criterion(y_batch[:, -1].flatten(), outputs.flatten())
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), clip_value)
             optimizer.step()
             train_loss.append(loss.item())
 

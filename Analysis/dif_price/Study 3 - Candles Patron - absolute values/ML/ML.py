@@ -136,7 +136,7 @@ if __name__ == '__main__':
 
     fee = 0.04
     x_train, y_train, x_test, y_test, x_original, y_original, scaler = create_data(
-        file='/00Versions/get_data/ADAUSDT-4h.csv',
+        file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.csv',
         period='4H', output=profit,periods_out=periods_out, past_candles=past_candles, kind=kind, training=training)
     if training:
         models = ML_train(x_train, y_train, x_test, y_test, profit, kind)

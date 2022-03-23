@@ -44,6 +44,7 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     df.dropna(inplace=True)
 
     # Split train / test
+    df = df[df.index.year > 2018]
     df_train = df[df.index.year < 2022]
     df_test = df[df.index.year >= 2022]
 
