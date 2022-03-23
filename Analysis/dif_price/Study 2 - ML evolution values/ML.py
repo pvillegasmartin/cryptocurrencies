@@ -103,9 +103,7 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-4h.
     df.dropna(inplace=True)
 
     # Order final
-    col_study = ['Output', 'RV', 'Close', 'High', 'Low', 'Open', 'Volume_sum', 'NTrades_sum', 'MACD', 'RSI', 'Dist_EMA14',
-                 'Dist_EMA25',
-                 'Dist_EMA150']
+    col_study = ['Output', 'RV', 'Close', 'High', 'Low', 'Open', 'Volume_sum', 'NTrades_sum', 'MACD', 'RSI', 'Dist_EMA14', 'Dist_EMA25', 'Dist_EMA150']
 
     df = df[col_study]
     # To not have any data on the training, is the final test
@@ -172,7 +170,7 @@ if __name__ == '__main__':
     # --- VARIABLES TO DEFINE ---
     kind = '-'
     training = False
-    profit = 5
+    profit = 10
     if not training:
         if profit == 5:
             filename = f'Extra Trees_profit{kind}{profit}.sav'
@@ -215,7 +213,7 @@ if __name__ == '__main__':
                 final_profit = true_positives * profit - false_positives.sum() * 100 - 2 * fee * (
                             true_positives + false_positives.count())  # 2 cause buy and sell
 
-            print(round(final_profit,2))
+            print(f'Profit: {round(final_profit,2)} %')
 
         if filename.split()[0] == "Decision":
             graph = Source(

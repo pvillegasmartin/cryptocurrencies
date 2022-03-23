@@ -1,4 +1,6 @@
 # Analysis
+<img height="25" width="25" src="https://unpkg.com/simple-icons@v6/icons/python.svg"/> <img height="25" width="25" src="https://unpkg.com/simple-icons@v6/icons/pytorch.svg"/> <img height="25" width="25" src="https://unpkg.com/simple-icons@v6/icons/scikitlearn.svg"/>
+
 In this section you can find the different analyses carried out.  
 
 _**NOTE**: All kinds of approaches have been done in different time frames and with different sets of inputs. As the possible combinations of these 2 factors are infinite, all the conclusions are relative to the current moment, any of these study paths are 100% discarded._
@@ -35,14 +37,12 @@ The approaches studied to date are:
 
       Extra Trees (Output -5%):
 
-<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/ML/Testing_output.png?raw=True"/>
+<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Dif_price/Study%202%20-%20ML%20evolution%20values/Output_ET_-5.PNG?raw=True"/>
 
       Extra Trees (Output -10%):
 
-<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/Test_2022_4H_out1_inputsdim7_ldim2_nsteps7.png?raw=True"/>
+<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Dif_price/Study%202%20-%20ML%20evolution%20values/Output_ET_-10.PNG?raw=True"/>
 
 
 4. [Local max/min](MAXMIN%20Locals)
 5. [Sentiment analysis](Sentiment)
- 
-<img height="25" width="25" src="https://unpkg.com/simple-icons@v6/icons/python.svg"/> <img height="25" width="25" src="https://unpkg.com/simple-icons@v6/icons/pytorch.svg"/> <img height="25" width="25" src="https://unpkg.com/simple-icons@v6/icons/scikitlearn.svg"/>
