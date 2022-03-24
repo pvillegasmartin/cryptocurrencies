@@ -44,12 +44,13 @@ The approaches studied to date are:
 
    - **Kind of analysis**: Regression 
    - **Output**: Bitcoin's difference of price to next relative maximum or minimum.
-   - **Conclusion**: Discarded visually. Not learning at all.
+   - **Conclusion**: Discarded visually. Not learning at all, big MAB error.
    
 
       Output:
 
-   <img src="?raw=True"/>
-
+   <img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/MAXMIN%20Locals/Error%20best%20model.PNG?raw=True"/>
+   <img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/MAXMIN%20Locals/Regression%20output.png?raw=True"/>
+   
    
 5. [Sentiment analysis](Sentiment)
