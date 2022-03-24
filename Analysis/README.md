@@ -13,10 +13,6 @@ The approaches studied to date are:
     - **Output**: Bitcoin price's change
     - **Conclusion**: Discarded visually. _'Persistence model'_ happens, just returning previous values.
    
-   
-      Machine learning models output:
-
-<img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/ML/Testing_output.png?raw=True"/>
 
       Deep learning models (LSTM):
 
@@ -45,4 +41,15 @@ The approaches studied to date are:
 
 
 4. [Local max/min](MAXMIN%20Locals)
+
+   - **Kind of analysis**: Regression 
+   - **Output**: Bitcoin's difference of price to next relative maximum or minimum.
+   - **Conclusion**: Discarded visually. Not learning at all.
+   
+
+      Output:
+
+   <img src="?raw=True"/>
+
+   
 5. [Sentiment analysis](Sentiment)

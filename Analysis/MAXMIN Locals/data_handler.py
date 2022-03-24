@@ -95,30 +95,32 @@ def create_data(file='C:/Users/Pablo/Desktop/PMG/00Versions/get_data/BTCUSDT-1d.
     n_steps = st.n_steps
     first_point = important_points.iloc[n_steps - 1, 0]
     last_point = important_points.iloc[-1, 0]
+    # index > first_point+st.local_extreme because we need at least 5 previous points and index<last_point because we need to have a possible output
     for row in df[(df['index'] > first_point+st.local_extreme) & (df['index'] < last_point)]['index']:
         row_close = df[df['index'] == row]['Close'].values[0]
+        # index has to be smaller to 'row-st.local_extreme' because we don't know it is considered a local max/min until this period of time passes
         df_rel = important_points[important_points['index'] < row-st.local_extreme].iloc[-n_steps:, :]
         df_out = important_points[important_points['index'] > row].iloc[0, :]
         data_to_append = {'index': [row],
                           'output': [(df_out['Value'] - row_close) / row_close * 100],
-                          'type_1': [df_rel.iloc[n_steps - 1, 1]],
-                          'dif_1': [(row_close - df_rel.iloc[n_steps - 1, 2]) / df_rel.iloc[n_steps - 1, 2] * 100],
-                          'timedif_1': [row - df_rel.iloc[n_steps - 1, 0]],
-                          'type_2': [df_rel.iloc[n_steps - 2, 1]],
-                          'dif_2': [(row_close - df_rel.iloc[n_steps - 2, 2]) / df_rel.iloc[n_steps - 2, 2] * 100],
-                          'timedif_2': [row - df_rel.iloc[n_steps - 2, 0]],
-                          'type_3': [df_rel.iloc[n_steps - 3, 1]],
-                          'dif_3': [(row_close - df_rel.iloc[n_steps - 3, 2]) / df_rel.iloc[n_steps - 3, 2] * 100],
-                          'timedif_3': [row - df_rel.iloc[n_steps - 3, 0]],
-                          'type_4': [df_rel.iloc[n_steps - 4, 1]],
-                          'dif_4': [(row_close - df_rel.iloc[n_steps - 4, 2]) / df_rel.iloc[n_steps - 4, 2] * 100],
-                          'timedif_4': [row - df_rel.iloc[n_steps - 4, 0]],
-                          'type_5': [df_rel.iloc[n_steps - 5, 1]],
-                          'dif_5': [(row_close - df_rel.iloc[n_steps - 5, 2]) / df_rel.iloc[n_steps - 5, 2] * 100],
-                          'timedif_5': [row - df_rel.iloc[n_steps - 5, 0]]}
+                          'type_1': [df_rel.iloc[n_steps - 1, :]['Type']],
+                          'dif_1': [(row_close - df_rel.iloc[n_steps - 1, :]['Value']) / df_rel.iloc[n_steps - 1, :]['Value'] * 100],
+                          'timedif_1': [row - df_rel.iloc[n_steps - 1, :]['index']],
+                          'type_2': [df_rel.iloc[n_steps - 2, :]['Type']],
+                          'dif_2': [(row_close - df_rel.iloc[n_steps - 2, :]['Value']) / df_rel.iloc[n_steps - 2, :]['Value'] * 100],
+                          'timedif_2': [row - df_rel.iloc[n_steps - 2, :]['index']],
+                          'type_3': [df_rel.iloc[n_steps - 3, :]['Type']],
+                          'dif_3': [(row_close - df_rel.iloc[n_steps - 3, :]['Value']) / df_rel.iloc[n_steps - 3, :]['Value'] * 100],
+                          'timedif_3': [row - df_rel.iloc[n_steps - 3, :]['index']],
+                          'type_4': [df_rel.iloc[n_steps - 4, :]['Type']],
+                          'dif_4': [(row_close - df_rel.iloc[n_steps - 4, :]['Value']) / df_rel.iloc[n_steps - 4, :]['Value'] * 100],
+                          'timedif_4': [row - df_rel.iloc[n_steps - 4, :]['index']],
+                          'type_5': [df_rel.iloc[n_steps - 5, :]['Type']],
+                          'dif_5': [(row_close - df_rel.iloc[n_steps - 5, :]['Value']) / df_rel.iloc[n_steps - 5, :]['Value'] * 100],
+                          'timedif_5': [row - df_rel.iloc[n_steps - 5, :]['index']]}
         data_ML = pd.concat([data_ML, pd.DataFrame.from_dict(data_to_append)])
 
-    return df, important_points, data_ML
+    return df, important_points, data_ML, first_point+st.local_extreme, last_point
 
 def preprocess(dataset):
     dataset.drop('index', inplace=True, axis=1)
@@ -133,7 +135,7 @@ def preprocess(dataset):
         num_vars.append(f'timedif_{i}')
 
     num_preprocessing = pipeline.Pipeline(steps=[
-        ('scaler', preprocessing.StandardScaler())
+        ('scaler', preprocessing.MinMaxScaler())
     ])
 
     cat_preporcessing = pipeline.Pipeline(steps=[
