@@ -170,7 +170,8 @@ if __name__ == '__main__':
     # --- VARIABLES TO DEFINE ---
     kind = '-'
     training = False
-    profit = 10
+    profit = 5
+    periods_out = 6
     if not training:
         if profit == 5:
             filename = f'Extra Trees_profit{kind}{profit}.sav'
@@ -197,7 +198,7 @@ if __name__ == '__main__':
         # Return in case after the periods is still opened
         x_original['Final_close'] = (x_original['Close'].shift(-6) - x_original['Close']) / x_original['Close']
 
-        for eval_year in [2019,2020,2021,2022]:
+        for eval_year in [2018,2019,2020,2021,2022]:
             print(f'------ {eval_year} ------')
             # Check over a period
             x_new = x_original[x_original.index.year == eval_year]
@@ -213,7 +214,8 @@ if __name__ == '__main__':
                 final_profit = true_positives * profit - false_positives.sum() * 100 - 2 * fee * (
                             true_positives + false_positives.count())  # 2 cause buy and sell
 
-            print(f'Profit: {round(final_profit,2)} %')
+            # Divided by periods_out because it represents the max number of operations that can be opened at the same time.
+            print(f'Profit: {round(final_profit/periods_out,2)} %')
 
         if filename.split()[0] == "Decision":
             graph = Source(

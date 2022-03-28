@@ -12,7 +12,7 @@ The approaches studied to date are:
    As mentioned in the main objective of the project, our baseline model is to buy at the beginning and keep the coins, since the annual returns of our base case are exactly the same as the currency suffers.
    Since I am using BTC to study the different approaches the numbers to beat are:
 
-   <img src="?raw=True"/>
+   <img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-return.PNG?raw=True"/>
 
 2. [Price forecasting](Price_forecast)
 
@@ -35,7 +35,7 @@ The approaches studied to date are:
 
    - **Kind of analysis**: Supervised Classification 
    - **Output**: Bitcoin's percentage price change in a lag of time is bigger or smaller than a fixed value.
-   - **Conclusion**: It seems like a good form of study, it should be explored in a greater variety of inputs. One set of input data is still under study pending the availability of more current's year data (test year).
+   - **Conclusion**: It seems like a good form of study, it should be explored in a greater variety of inputs. Two set of inputs data are still under study pending the availability of more current's year data (test year).
 
 
       Extra Trees (Output -5%):
@@ -51,7 +51,7 @@ The approaches studied to date are:
 
    - **Kind of analysis**: Regression 
    - **Output**: Bitcoin's difference of price to next relative maximum or minimum.
-   - **Conclusion**: Discarded visually. Not learning at all, big MAB error.
+   - **Conclusion**: Discarded visually. Not learning at all, big MAE error.
    
 
       Output:

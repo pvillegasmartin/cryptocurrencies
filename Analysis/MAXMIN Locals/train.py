@@ -29,7 +29,7 @@ classifiers = {
     "CatBoost": CatBoostRegressor(n_estimators=100)
 }
 
-results = pd.DataFrame({'Model': [], 'Explained_variance': [], 'MSE': [], 'MAB': [], "R2-score": [], 'Time': []})
+results = pd.DataFrame({'Model': [], 'Explained_variance': [], 'MSE': [], 'MAE': [], "R2-score": [], 'Time': []})
 
 for model_name, model in classifiers.items():
     start_time = time.time()
@@ -41,7 +41,7 @@ for model_name, model in classifiers.items():
     results = results.append({"Model": model_name,
                               "Explained_variance": metrics.explained_variance_score(y_val, y_pred),
                               "MSE": metrics.mean_squared_error(y_val, y_pred),
-                              "MAB": metrics.mean_absolute_error(y_val, y_pred),
+                              "MAE": metrics.mean_absolute_error(y_val, y_pred),
                               "R2-score": metrics.r2_score(y_val, y_pred),
                               "Time": total_time},
                              ignore_index=True)
@@ -69,4 +69,4 @@ plt.show()
 
 print(
     f'Y_val summary --- Mean: {round(y_val.mean(), 2)}%  Max: {round(y_val.max(), 2)}%  Min: {round(y_val.min(), 2)}%')
-print(results_ord)
+print(results_ord.iloc[0])
