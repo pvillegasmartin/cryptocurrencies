@@ -7,7 +7,14 @@ _**NOTE**: All kinds of approaches have been done in different time frames and w
 
 The approaches studied to date are:
 
-1. [Price forecasting](Price_forecast)
+0. Baseline model
+
+   As mentioned in the main objective of the project, our baseline model is to buy at the beginning and keep the coins, since the annual returns of our base case are exactly the same as the currency suffers.
+   Since I am using BTC to study the different approaches the numbers to beat are:
+
+   <img src="?raw=True"/>
+
+2. [Price forecasting](Price_forecast)
 
     - **Kind of analysis**: Regression 
     - **Output**: Bitcoin price's change

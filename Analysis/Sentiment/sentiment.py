@@ -13,9 +13,9 @@ from sklearn.preprocessing import MinMaxScaler
 
 #Sentiment data
 df_sentiment = pd.read_csv(r'C:\Users\Pablo\Desktop\PMG\Strategies\Sentiment\data\augmento_btc.csv')
-#df_sentiment['date'] = df_sentiment['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
+df_sentiment['date'] = df_sentiment['date'].apply(lambda x: datetime.datetime.strptime(x, '%Y-%m-%d %H:%M:%S'))
 df_sentiment = df_sentiment.set_index('date')
-#df_sentiment = df_sentiment[df_sentiment.index.year > 2018]
+df_sentiment = df_sentiment[df_sentiment.index.year > 2018]
 df_sentiment = df_sentiment.dropna()
 
 # Checking that one platform values are not higher in general
@@ -49,7 +49,25 @@ data = pd.concat((data, X_bitcointalk))
 data = data.groupby(data.index).mean()
 del X_twitter, X_reddit, X_bitcointalk, df_sentiment
 
-# feature selection
+# EDA
+fig, ax = plt.subplots()
+ax.bar(data.index, data['positive'], label='Positive', color='green', linewidth=0.25)
+ax.bar(data.index, data['negative'], label='Negative', color='red', alpha=0.5, linewidth=0.25)
+ax.legend(loc='upper left')
+ax2 = ax.twinx()
+ax2.plot(y, label='BTC Price', linewidth=1)
+ax2.legend(loc='upper right')
+plt.show()
+
+correlations_y = []
+for feature in data.columns:
+    try:
+        corr = pearsonr(data[feature],y)[0]
+        correlations_y.append([feature,corr])
+    except:
+        pass
+
+# Feature selection
 # Show all features shape
 '''
 n_cols = 5
@@ -70,24 +88,7 @@ axs[0].plot(y)
 axs[1].plot(data.bullish)
 axs[2].plot(data.bearish)
 plt.show()
-'''
-row_train = int(len(data)*0.8)
-train, test = data.iloc[:row_train,:], data.iloc[row_train:,:]
-scaler = MinMaxScaler()
-train_scaled = scaler.fit_transform(train)
-test_scaled = scaler.transform(test)
 
-mySeries = np.transpose(train_scaled)
-# Correlation
-correlations = []
-for feature in data.columns:
-    for variable in data.columns:
-        try:
-            corr = pearsonr(data[feature],data[variable])[0]
-            correlations.append([feature,variable,corr])
-        except:
-            pass
-'''
 # SOM method - Self-organizing maps are a type of neural network that is trained using unsupervised learning to produce a low-dimensional representation of the input space of the training samples, called a map
 def plot_som_series_averaged_center(som_x, som_y, win_map):
     fig, axs = plt.subplots(som_x,som_y,figsize=(25,25))
@@ -161,4 +162,21 @@ labels = kmeans.fit_predict(data_pca)
 fancy_names_for_labels = [f"Cluster {label}" for label in labels]
 series_classified = pd.DataFrame(zip(data.columns,fancy_names_for_labels),columns=["Series","Cluster"]).sort_values(by="Cluster").set_index("Series")
 '''
-print(23)
+# CORRELATION
+row_train = int(len(data)*0.8)
+train, test = data.iloc[:row_train,:], data.iloc[row_train:,:]
+scaler = MinMaxScaler()
+train_scaled = scaler.fit_transform(train)
+test_scaled = scaler.transform(test)
+
+mySeries = np.transpose(train_scaled)
+# Correlation
+correlations = []
+for feature in data.columns:
+    for variable in data.columns:
+        try:
+            corr = pearsonr(data[feature],data[variable])[0]
+            correlations.append([feature,variable,corr])
+        except:
+            pass
+print(1)
