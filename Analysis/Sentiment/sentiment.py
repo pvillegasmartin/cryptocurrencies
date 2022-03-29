@@ -2,6 +2,7 @@ import datetime
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 import math
 from scipy.stats import pearsonr
 
@@ -50,9 +51,22 @@ data = data.groupby(data.index).mean()
 del X_twitter, X_reddit, X_bitcointalk, df_sentiment
 
 # EDA
+
+# Plot the Correlation map to see how features are correlated with the target
+'''
+data['output'] = y
+corr_matrix = data.corr()
+plt.subplots(figsize=(12,9))
+sns.heatmap(corr_matrix, vmax=0.9, square=True)
+plt.show()
+
+plt.bar(data.columns,corr_matrix.output)
+plt.xticks(rotation=90)
+plt.show()
+'''
 fig, ax = plt.subplots()
-ax.bar(data.index, data['positive'], label='Positive', color='green', linewidth=0.25)
-ax.bar(data.index, data['negative'], label='Negative', color='red', alpha=0.5, linewidth=0.25)
+ax.bar(data.index, data['volume'], label='Positive', color='green', linewidth=0.25)
+ax.bar(data.index, data['ico'], label='Negative', color='red', alpha=0.5, linewidth=0.25)
 ax.legend(loc='upper left')
 ax2 = ax.twinx()
 ax2.plot(y, label='BTC Price', linewidth=1)
