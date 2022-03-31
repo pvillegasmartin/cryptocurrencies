@@ -26,6 +26,8 @@ for year in profit_year.index:
 colors = pd.DataFrame(profit_year.values>0).replace(True,'green').replace(False, 'red')[0]
 plt.figure()
 plt.bar(profit_year.index.to_series().astype(str), profit_year.values, color=list(colors))
-plt.title('Evolution Bitcoin returns')
-plt.ylabel('Returns [%]')
+plt.title('Evolution Bitcoin returns', fontsize=40)
+plt.ylabel('Returns [%]', fontsize=30)
+plt.xticks(fontsize=25)
+plt.yticks(fontsize=25)
 plt.show()

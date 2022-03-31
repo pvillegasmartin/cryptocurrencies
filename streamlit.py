@@ -61,8 +61,8 @@ def streamlit_template():
 
         images_links = {
             'Baseline': [(
-                         'https://raw.githubusercontent.com/pvillegasmartin/cryptocurrencies/main/Analysis/baseline-return.PNG',
-                         'Bitcoin returns'),
+                         'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
+                         'Bitcoin evolution returns'),
                          (
                          'https://raw.githubusercontent.com/pvillegasmartin/cryptocurrencies/main/Analysis/baseline-return.PNG',
                          'Bitcoin returns')],
@@ -94,7 +94,7 @@ def streamlit_template():
                 unsafe_allow_html=True)
             try:
                 if len(images_links[analysis_type]) == 2:
-                    col1, col2 = st.columns((2, 1))
+                    col1, col2 = st.columns((3, 1))
                     col1.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
                     col2.image(images_links[analysis_type][1][0], caption=images_links[analysis_type][1][1])
                 else:
