@@ -67,8 +67,8 @@ def streamlit_template():
                 # 'https://raw.githubusercontent.com/pvillegasmartin/cryptocurrencies/main/Analysis/baseline-return.PNG',
                 # 'Bitcoin returns')],
             , 'Ensemble principals': [(
-                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
-                'Bitcoin evolution returns')]
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/Test_2022_4H_out1_inputsdim4_ldim2_nsteps15.png?raw=true',
+                'Bitcoin price forecasting (LSTM)')]
             , 'Price difference': [(
                 'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
                 'Bitcoin evolution returns')]
