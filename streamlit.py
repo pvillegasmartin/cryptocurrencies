@@ -67,11 +67,21 @@ def streamlit_template():
                 # 'https://raw.githubusercontent.com/pvillegasmartin/cryptocurrencies/main/Analysis/baseline-return.PNG',
                 # 'Bitcoin returns')],
             , 'Ensemble principals': [(
-                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/streamlit_persistence.png?raw=true',
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Price_forecast/DL/streamlit_persistence_lstm.png?raw=true',
                 'Bitcoin price forecasting (LSTM)')]
             , 'Price difference': [(
-                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
-                'Bitcoin evolution returns')]
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Dif_price/Study%202%20-%20ML%20evolution%20values/Output_ET_-5.PNG?raw=true',
+                "At least 5% BTC's price decrease in the next 24h"),
+                (
+                    'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-return.PNG?raw=true',
+                    "Baseline model returns"),
+                (
+                    'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Dif_price/Study%202%20-%20ML%20evolution%20values/Output_ET_-10.PNG?raw=true',
+                    "At least 10% BTC's price decrease in the next 24h"),
+                (
+                    'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-return.PNG?raw=true',
+                    "Baseline model returns")
+            ]
             , 'Local points': [(
                 'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
                 'Bitcoin evolution returns')]
@@ -80,15 +90,17 @@ def streamlit_template():
                 'Bitcoin evolution returns')]
         }
 
+
         text_strategies = {
             'Baseline': '<b>BUY AND HOLD</b><br><br>The baseline model is to buy at the beginning and keep the coins, since the annual returns of our base case are exactly the same as the currency suffers.',
             'Ensemble principals': 'Ensemble in a final model the outputs of generated models for each principal feature:'
                                    '<li>Trend</li><li>Direction</li><li>Volatility</li>',
-            'Price difference': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis/Dif_price',
-            'Local points': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis/MAXMIN%20Locals',
-            'Sentiment': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis/Sentiment'
+            'Price difference': "<b>Analysis type:</b> Supervised Binary classification<br>"
+                                "<b>Output:</b> Bitcoin's percentage price change in a lag of time is bigger or smaller than a value.",
+            'Local points': "<b>Analysis type:</b> Regression<br>"
+                                "<b>Output:</b> Bitcoin's percentage price change to next relative maximum or minimum.",
+            'Sentiment': 'Pending analysis'
         }
-
         st.title(analysis_type)
         f'''
             [![Github](https://img.shields.io/badge/Github%20repository-informational?style=flat&logo=github&logoColor=white&color=212020)]({github_links[analysis_type]})
@@ -102,9 +114,16 @@ def streamlit_template():
                 unsafe_allow_html=True)
             try:
                 if len(images_links[analysis_type]) == 2:
-                    col1, col2 = st.columns((3, 1))
+                    col1, col2 = st.columns((1, 1))
                     col1.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
                     col2.image(images_links[analysis_type][1][0], caption=images_links[analysis_type][1][1])
+                elif len(images_links[analysis_type]) == 4:
+                    col1, col2 = st.columns((2, 1))
+                    col1.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
+                    col2.image(images_links[analysis_type][1][0], caption=images_links[analysis_type][1][1])
+                    # col1, col2 = st.columns((2, 1))
+                    # col1.image(images_links[analysis_type][2][0], caption=images_links[analysis_type][2][1])
+                    # col2.image(images_links[analysis_type][3][0], caption=images_links[analysis_type][3][1])
                 else:
                     col1, col2, col3 = st.columns((1, 8, 1))
                     col2.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
