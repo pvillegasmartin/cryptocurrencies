@@ -29,12 +29,16 @@ for i in range(max_range):
 
 df_pred = scaler.inverse_transform(df_test.iloc[train.n_steps+1:, :])[:, 0]
 df_ground = scaler.inverse_transform(df_test.iloc[train.n_steps+1:, :])[:, 1]
+plt.figure()
 plt.plot(df_ground, label="Ground truth")
 #plt.plot(df_pred, label="To predict")
 plt.plot(predictions, label="Prediction")
-plt.xlabel(" Time ")
-plt.ylabel("Output")
 plt.legend(loc="upper left")
+plt.title('Evolution Bitcoin price [$]', fontsize=40)
+plt.ylabel('Price [$]', fontsize=30)
+plt.xlabel('Time [4h timeframes]', fontsize=30)
+plt.xticks(fontsize=25)
+plt.yticks(fontsize=25)
 plt.show()
 #plt.savefig(f'Test_2022_{train.period}_out{train.output_shift}_inputsdim{train.input_dim}_ldim{train.layer_dim}_nsteps{train.n_steps}.png')
 #plt.clf()

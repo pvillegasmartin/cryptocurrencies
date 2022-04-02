@@ -5,7 +5,7 @@ def streamlit_template():
     st.set_page_config(layout="wide")
     st.sidebar.markdown("<h1 style=' color: #948888;'>SECTIONS</h1>",
                         unsafe_allow_html=True)
-    home = st.sidebar.checkbox("HOMEPAGE")
+    home = st.sidebar.checkbox("HOMEPAGE", value=True)
     if home:
         st.title("PABLO VILLEGAS MARTÍN")
         '''
@@ -61,15 +61,23 @@ def streamlit_template():
 
         images_links = {
             'Baseline': [(
-                         'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
-                         'Bitcoin evolution returns'),
-                         (
-                         'https://raw.githubusercontent.com/pvillegasmartin/cryptocurrencies/main/Analysis/baseline-return.PNG',
-                         'Bitcoin returns')],
-            'Ensemble principals': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis',
-            'Price difference': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis/Dif_price',
-            'Local points': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis/MAXMIN%20Locals',
-            'Sentiment': 'https://github.com/pvillegasmartin/cryptocurrencies/tree/main/Analysis/Sentiment'
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
+                'Bitcoin evolution returns')]
+                # ,(
+                # 'https://raw.githubusercontent.com/pvillegasmartin/cryptocurrencies/main/Analysis/baseline-return.PNG',
+                # 'Bitcoin returns')],
+            , 'Ensemble principals': [(
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
+                'Bitcoin evolution returns')]
+            , 'Price difference': [(
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
+                'Bitcoin evolution returns')]
+            , 'Local points': [(
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
+                'Bitcoin evolution returns')]
+            , 'Sentiment': [(
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
+                'Bitcoin evolution returns')]
         }
 
         text_strategies = {
@@ -98,7 +106,7 @@ def streamlit_template():
                     col1.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
                     col2.image(images_links[analysis_type][1][0], caption=images_links[analysis_type][1][1])
                 else:
-                    col1, col2, col3 = st.columns((1, 1, 1))
+                    col1, col2, col3 = st.columns((1, 8, 1))
                     col2.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
             except:
                 pass
