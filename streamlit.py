@@ -83,8 +83,8 @@ def streamlit_template():
                     "Baseline model returns")
             ]
             , 'Local points': [(
-                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
-                'Bitcoin evolution returns')]
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/MAXMIN%20Locals/streamlit_maxmins.png?raw=true',
+                'Bitcoin relative max/min analysis')]
             , 'Sentiment': [(
                 'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
                 'Bitcoin evolution returns')]
