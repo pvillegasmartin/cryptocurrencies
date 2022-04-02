@@ -86,8 +86,8 @@ def streamlit_template():
                 'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/MAXMIN%20Locals/streamlit_maxmins.png?raw=true',
                 'Bitcoin relative max/min analysis')]
             , 'Sentiment': [(
-                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true',
-                'Bitcoin evolution returns')]
+                'https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/Sentiment/btc_sentiment.png?raw=true',
+                'BTC sentiment wordcloud')]
         }
 
 
@@ -99,7 +99,7 @@ def streamlit_template():
                                 "<b>Output:</b> Bitcoin's percentage price change in a lag of time is bigger or smaller than a value.",
             'Local points': "<b>Analysis type:</b> Regression<br>"
                                 "<b>Output:</b> Bitcoin's percentage price change to next relative maximum or minimum.",
-            'Sentiment': 'Pending analysis'
+            'Sentiment': 'Pending analysis of 93 sentiments and topics related to crypto market.'
         }
         st.title(analysis_type)
         f'''
@@ -125,7 +125,10 @@ def streamlit_template():
                     # col1.image(images_links[analysis_type][2][0], caption=images_links[analysis_type][2][1])
                     # col2.image(images_links[analysis_type][3][0], caption=images_links[analysis_type][3][1])
                 else:
-                    col1, col2, col3 = st.columns((1, 8, 1))
+                    if analysis_type == 'Sentiment':
+                        col1, col2, col3 = st.columns((1, 4, 1))
+                    else:
+                        col1, col2, col3 = st.columns((1, 8, 1))
                     col2.image(images_links[analysis_type][0][0], caption=images_links[analysis_type][0][1])
             except:
                 pass
