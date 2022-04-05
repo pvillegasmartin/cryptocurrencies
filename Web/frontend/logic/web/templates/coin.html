@@ -152,6 +152,7 @@
           labels: [{% for item in data["time"] %}
                     "{{item.split(' ')[0]}}",
                    {% endfor %}],
+          color: "#ffffff",
           datasets: [
             {
               label: "Volume",
@@ -168,7 +169,7 @@
           title: {
             display: true,
             text: 'VOLUME'
-          }
+            }
         }
     });
 </script>

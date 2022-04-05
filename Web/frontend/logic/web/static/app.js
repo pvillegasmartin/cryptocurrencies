@@ -35,7 +35,7 @@ particlesJS('particles-js',
           "nb_sides": 5
         },
         "image": {
-          "src": "₿",
+          "src": "./static/bitcoin_emoticono.PNG",
           "width": 100,
           "height": 100
         }
@@ -51,7 +51,7 @@ particlesJS('particles-js',
         }
       },
       "size": {
-        "value": 5,
+        "value": 25,
         "random": true,
         "anim": {
           "enable": false,

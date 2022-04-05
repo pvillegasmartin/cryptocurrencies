@@ -133,3 +133,4 @@ strategies/Sentiment/data/augmento_eth.csv
 *.csv
 /00Versions/
 /Analysis/Volatility/Initial_studies/External Study/
+Analysis/Dif_price/Williams/Extra Trees_profit+3.sav
