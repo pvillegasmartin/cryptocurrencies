@@ -103,7 +103,7 @@ def home():
 
 @app.route('/strategies', methods=['GET'])
 def strategies():
-    return render_template('strategies.html', github_links=github_links, text_strategies=text_strategies, images_links=images_links, title_strategies=title_strategies)
+    return render_template('strategies.html', github_links=github_links, text_strategies=text_strategies, images_links=images_links, title_strategies=title_strategies, description_strategies=description_strategies)
 
 @app.route('/my_profile', methods=['GET'])
 def my_profile():

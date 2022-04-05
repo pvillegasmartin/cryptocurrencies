@@ -4,12 +4,13 @@
 
 {% block content %}
     <div class="container">
-        {% for key in ['Baseline', 'Ensemble principals', 'Local points'] %}
-            <h2>{{title_strategies[key]}}</h2>
+        {% for key in ['Baseline', 'Ensemble principals', 'Local points', 'Price difference', 'Sentiment', 'On chain'] %}
+            <h2 style="text-transform: uppercase;">{{title_strategies[key]}}</h2>
             <p style="text-align:center;">{{text_strategies[key]}}</p>
-            <div style="max-width:70%;margin:auto; margin-bottom:6%;">
+            <div style="max-width:70%;margin:auto; margin-bottom:4%;">
                 <img src="{{images_links[key][0][0]}}" alt="{{images_links[key][0][1]}}" style="width:100%;height:100%;">
             </div>
+            <p style="margin-bottom:6%;border-bottom: inset; padding-bottom: 7%; border-width: thin; font-style: italic;">{{description_strategies[key]}}</p>
         {% endfor %}
     </div>
 

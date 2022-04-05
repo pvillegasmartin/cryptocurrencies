@@ -164,7 +164,7 @@ if __name__ == '__main__':
     # --- VARIABLES TO DEFINE ---
     kind = '-'
     training = False
-    profit = 5
+    profit = 10
     if not training:
         filename = f'Decision Tree_profit{profit}.sav'
         eval_year = 2022

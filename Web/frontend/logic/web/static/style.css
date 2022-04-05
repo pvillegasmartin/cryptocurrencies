@@ -179,5 +179,6 @@ body{
   display: block;
   align-items: center;
   text-align: center;
-  margin-top:20%;
+  padding-top:15%;
+  height:calc(100vh - 66px);
 }
