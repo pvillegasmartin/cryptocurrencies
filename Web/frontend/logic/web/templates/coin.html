@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Homepage{% endblock %}
+{% block title %}Coin page{% endblock %}
 
 {% block content %}
-
+    <div class='spinner-wrapper'>
+        <div class="spinner"></div>
+    </div>
     <div class="container">
         {% if data['time'] != [] %}
             <div class="row">
@@ -13,25 +15,20 @@
                 <div class="col-lg-3 col-12"></div>
                 <div class="col-lg-3 col-12"></div>
                 <div class="col-lg-3 col-12">
-                    COMPARISON RANGE:
+                    <span style="text-align:center;display:block;">STRATEGY</span>
                     <select id="comboA" class="form-select" aria-label="Default select example">
                       <option selected>Select an option</option>
-                      <option value="1">Last hour</option>
-                      <option value="2">Yesterday's value</option>
+                      <option value="1">Last day</option>
+                      <option value="2">Last week</option>
                     </select>
                 </div>
             </div>
-            {% if data['close'][-1] < data['close'][-2] %}
                 <h3 style="display:inline;font-size: xxx-large;">{{data['close'][-1]}}</h3>
-                <h4 style="color:red; display:inline;" id="perc"></h4>
-            {% else %}
-                <h3 style="display:inline;font-size: xxx-large;">{{data['close'][-1]}}</h3>
-                <h4 style="color:green; display:inline;" id="perc"></h4>
-            {% endif %}
+                <h4 style="display:inline;" id="perc"></h4>
         {% endif %}
-        <form action="" method="post">
-            <input type="submit" class="btn btn-outline-secondary" id="actualizar" name="actualizar" value="Refresh" style="margin-top:10px;" />
-        </form>
+<!--        <form act="" method="post">-->
+<!--            <input type="submit" class="btn btn-outline-secondary" id="actualizar" name="actualizar" value="Refresh" style="margin-top:10px;" />-->
+<!--        </form>-->
         {% if data['time'] != [] %}
             <div class="row">
                 <div class="col-lg-6 col-12">
@@ -41,6 +38,13 @@
                         <canvas id="bar-chart"></canvas>
                 </div>
             </div>
+            <div class="row" style="margin-top:2rem;">
+                <div class="col-lg-3 col-2"></div>
+                <div class="col-lg-6 col-8">
+                    <p id="action-to-do" style="text-align:center;color:white;font-size:2rem;"></p>
+                </div>
+                <div class="col-lg-3 col-2"></div>
+            </div>
         {% endif %}
     </div>
 
@@ -48,13 +52,41 @@
 
 {% block particularscripts %}
 <script>
+    let spinnerWrapper = document.querySelector('.spinner-wrapper');
+
+    window.addEventListener('load', function () {
+        // spinnerWrapper.style.display = 'none';
+        spinnerWrapper.parentElement.removeChild(spinnerWrapper);
+    });
+
+
     document.getElementById("comboA").onchange = function(evt){
         var value = evt.target.value;
         if (value==1){
                 document.getElementById("perc").innerHTML = (({{data["close"][-1]}}-{{data["close"][-2]}})/{{data["close"][-2]}}*100).toFixed(2).toString() + "%";
+                if ({{data["close"][-1]}}-{{data["close"][-2]}} < 0){
+                    document.getElementById("perc").style.color = "red";
+                    document.getElementById("action-to-do").innerHTML = "TIME TO BUY";
+                    document.getElementById("action-to-do").style.background = "green";
+                }
+                else{
+                    document.getElementById("perc").style.color = "green";
+                    document.getElementById("action-to-do").innerHTML = "TIME TO SELL";
+                    document.getElementById("action-to-do").style.background = "red";
+                }
             }
         else{
-                document.getElementById("perc").innerHTML = (({{data["close"][-1]}}-{{data["close"][-25]}})/{{data["close"][-25]}}*100).toFixed(2).toString() + "%";
+                document.getElementById("perc").innerHTML = (({{data["close"][-1]}}-{{data["close"][-8]}})/{{data["close"][-8]}}*100).toFixed(2).toString() + "%";
+                if ({{data["close"][-1]}}-{{data["close"][-8]}} < 0){
+                    document.getElementById("perc").style.color = "red";
+                    document.getElementById("action-to-do").innerHTML = "TIME TO BUY";
+                    document.getElementById("action-to-do").style.background = "green";
+                }
+                else{
+                    document.getElementById("perc").style.color = "green";
+                    document.getElementById("action-to-do").innerHTML = "TIME TO SELL";
+                    document.getElementById("action-to-do").style.background = "red";
+                }
             }
     };
 
@@ -62,17 +94,47 @@
       type: 'line',
       data: {
         labels: [{% for item in data["time"] %}
-                    "{{item}}",
+                    "{{item.split(' ')[0]}}",
                    {% endfor %}],
         datasets: [{
             data: [{% for item in data["close"] %}
                     "{{item}}",
                    {% endfor %}],
             label: '{{ data["coin"][0] }}',
-            borderColor: "#3e95cd",
+            backgroundColor: "#ffffff",
+            borderColor: "#ffffff",
+            borderWidth: 0.6,
             pointRadius: 0,
             fill: false
-          }
+          },
+          {
+          label: 'Buy points',
+          data: [{% for i in range(data["close"]|length) %}
+                    {% if data['close'][i] > 44000 and data['coin'][i] == 'BTCUSDT' %}
+                        {{data["close"][i]}},
+                    {% else %}
+                        'NaN',
+                    {% endif %}
+                   {% endfor %}],
+          backgroundColor: "#38ab6c",
+          borderColor: "#38ab6c",
+          borderWidth: 0,
+          fill: false
+        },
+        {
+          label: 'Close points',
+          data: [{% for i in range(data["close"]|length) %}
+                    {% if data['close'][i] < 38000 and data['coin'][i] == 'BTCUSDT' %}
+                        {{data["close"][i]}},
+                    {% else %}
+                        'NaN',
+                    {% endif %}
+                   {% endfor %}],
+          backgroundColor: "#cf082d",
+          borderColor: "#cf082d",
+          borderWidth: 0,
+          fill: false
+        }
         ]
       },
       options: {
@@ -88,16 +150,17 @@
         type: 'bar',
         data: {
           labels: [{% for item in data["time"] %}
-                    "{{item}}",
+                    "{{item.split(' ')[0]}}",
                    {% endfor %}],
           datasets: [
             {
               label: "Volume",
-              backgroundColor: "#3e95cd",
+              backgroundColor: "#ffffff",
               data: [{% for item in data["volume"] %}
                     "{{item}}",
                    {% endfor %}]
-            }
+            },
+
           ]
         },
         options: {

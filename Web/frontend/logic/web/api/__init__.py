@@ -100,29 +100,30 @@ api.add_resource(Crypto_api, '/crypto')
 def home():
     return render_template('home.html')
 
-@app.route('/<coin>', methods=['GET', 'POST'])
+@app.route('/coin_<coin>', methods=['GET', 'POST'])
 def crypto_detail(coin):
-    req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}')
+    req = requests.get(f'http://127.0.0.1:5000/crypto?coin={coin}',
+                       headers={'Content-Type': 'application/json'},
+                       json={}
+                       )
     all_info = json.loads(req.content)
 
-    if request.method == 'POST':
-        try:
-            last_time = max(all_info['time'])
-            last_time = date_to_milliseconds(last_time)
+    try:
+        last_time = max(all_info['time'])
+        last_time = date_to_milliseconds(last_time)
 
-        except:
-            last_time = 1640991600000
+    except:
+        last_time = 1640991600000
 
-        try:
+    try:
+        df_new = get_historical_klines(start_str=last_time,end_str='now UTC',interval='1d',symbol=coin)
+        for index, row in df_new.iterrows():
+            requests.post(f'http://localhost:5000/crypto?coin={row["symbol"]}&time={row["time"]}&high={row["High"]}&low={row["Low"]}&open={row["Open"]}&close={row["Close"]}&volume={row["Volume"]}',
+                          headers={'Content-Type': 'application/json'},
+                          json={}
+                          )
+        return render_template('coin.html', data=all_info)
+        #return redirect(f'http://localhost:5000/coin_{coin}')
 
-            df_new = get_historical_klines(start_str=last_time,end_str='now UTC',interval='1h',symbol=coin)
-            for index, row in df_new.iterrows():
-                requests.post(f'http://localhost:5000/crypto?coin={row["symbol"]}&time={row["time"]}&high={row["High"]}&low={row["Low"]}&open={row["Open"]}&close={row["Close"]}&volume={row["Volume"]}')
-
-            return redirect(f'http://localhost:5000/{coin}')
-
-        except:
-            return render_template('coin.html', data=all_info)
-
-    else:
+    except:
         return render_template('coin.html', data=all_info)
