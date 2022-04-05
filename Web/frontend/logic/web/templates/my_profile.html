@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Strategies{% endblock %}
+
+{% block content %}
+    <div id="particles-js"></div>
+    <div class="container center-screen">
+        <h1 style="margin-bottom:2%;">PABLO VILLEGAS MARTÍN</h1>
+        <a href="https://www.linkedin.com/in/pablo-villegas-martin/" class="fa fa-linkedin"></a>
+        <a href="https://github.com/pvillegasmartin" class="fa fa-github"></a>
+    </div>
+
+
+{% endblock %}
+{% block particularscripts %}
+<script src="{{ url_for('static', filename='particles.js') }}"></script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+{% endblock %}
