@@ -15,7 +15,7 @@ The approaches studied to date are:
    Since I am using BTC to study the different approaches the numbers to beat are:
 
 
-   <img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-return.PNG?raw=True"/>
+   <img src="https://github.com/pvillegasmartin/cryptocurrencies/blob/main/Analysis/baseline-evolutions-return.png?raw=true"/>
 
 1. [Price forecasting](Price_forecast)
 
@@ -41,6 +41,7 @@ The approaches studied to date are:
    - **Kind of analysis**: Supervised Classification 
    - **Output**: Bitcoin's percentage price change in a lag of time is bigger or smaller than a fixed value.
    - **Conclusion**: It seems like a good form of study, it should be explored in a greater variety of inputs. Two set of inputs data are still under study pending the availability of more current's year data (test year).
+   
 
 
       Extra Trees (Output -5%):
@@ -73,4 +74,4 @@ The approaches studied to date are:
 
    This is where you try to track the market prices by what other people thinks about then, or the general feel about certain crypto or stocks are. Pending analysis of 93 sentiments and topics related to crypto market.
 
-   I'm learning more about causation, trying not to follow in the classical ''Correlation doesn't mean causation'.
+   I'm learning more about causation, trying not to follow in the classical ''Correlation doesn't mean causation''.
